@@ -1,0 +1,16 @@
+# macOS / editor junk
+.DS_Store
+._*
+*.log
+
+# Local Claude Code settings (machine-specific)
+.claude/
+scratchpad/
+
+# Business data — keep price sheets OUT of the repo
+*.xlsx
+*.xls
+*.csv
+
+# Dependencies / build caches
+node_modules/

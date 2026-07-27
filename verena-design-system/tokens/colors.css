@@ -1,0 +1,51 @@
+:root{
+/* Verena green — primary, drawn from the logo background */
+--green-900:#14170f;
+--green-800:#1c2015;
+--green-700:#24281c;
+--green-600:#343b26;
+--green-500:#4a5438;
+--green-400:#6b7850;
+--green-300:#97a375;
+--green-200:#c3cba8;
+--green-100:#e4e8d6;
+--green-50:#f3f5ec;
+/* Verena gold/cream — secondary, drawn from the logo mark */
+--gold-900:#6b5a2e;
+--gold-800:#8c7640;
+--gold-700:#a68f52;
+--gold-600:#c2a96a;
+--gold-500:#d9be85;
+--gold-400:#e8d3a0;
+--gold-300:#f2e2ba;
+--gold-200:#f7ebd0;
+--gold-100:#fbf4e4;
+--gold-50:#fdfaf1;
+/* warm neutrals, desaturated from the green */
+--neutral-900:#1a1a17;
+--neutral-800:#2b2a26;
+--neutral-700:#46443c;
+--neutral-600:#635f54;
+--neutral-500:#857f70;
+--neutral-400:#a9a392;
+--neutral-300:#ccc6b5;
+--neutral-200:#e4dfd2;
+--neutral-100:#f1ede3;
+--neutral-50:#f8f6f0;
+/* semantic aliases */
+--surface-page:var(--neutral-50);
+--surface-card:#ffffff;
+--surface-inverse:var(--green-900);
+--surface-sunken:var(--neutral-100);
+--text-primary:var(--green-900);
+--text-secondary:var(--neutral-700);
+--text-muted:var(--neutral-500);
+--text-inverse:var(--gold-300);
+--text-on-inverse-muted:var(--gold-100);
+--border-subtle:var(--neutral-200);
+--border-strong:var(--neutral-400);
+--accent:var(--gold-600);
+--accent-hover:var(--gold-700);
+--accent-strong:var(--green-700);
+--focus-ring:var(--gold-600);
+}

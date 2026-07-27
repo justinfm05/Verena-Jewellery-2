@@ -1,0 +1,446 @@
+<?php
+/**
+ * Gold net-worth calculator ("Kalkulator Emas"). Create a WP Page with slug
+ * "gold-calculator". Opening /gold-calculator/{slug}/ loads a previously saved
+ * list into the same tool via the verena_calc_slug query var.
+ *
+ * A multi-item valuation tool split into two categories — Perhiasan (jewellery,
+ * weighed + karat) and Logam Mulia (bars, exact stamped denomination × qty).
+ * It shows a running total and a "Jual ke Verena via WhatsApp" CTA that sends
+ * the itemised list + total straight to WhatsApp — the buyback sales funnel.
+ *
+ * Every item's value = grams × purity fraction × today's buyback rate
+ * (Verena Jewellery > Harga Emas Hari Ini). Logam Mulia uses the 24K fraction.
+ *
+ * @package Verena_Jewellery
+ */
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+get_header();
+
+$buyback_rate  = verena_get_current_buyback_rate();
+$rate_per_gram = $buyback_rate ? (int) $buyback_rate['price_per_gram'] : 0;
+
+// Full 1K–24K karat list for the "Perhiasan" dropdown. Each karat shows its
+// gold purity as a percentage, so customers who don't know what "karat" means
+// can still recognise their gold. We prefer any purity the shop set in wp-admin
+// (Purity Options); otherwise a karat is simply N/24 pure.
+$stored_bps = array();
+foreach ( verena_get_purity_options() as $o ) {
+	$stored_bps[ $o['label'] ] = (int) $o['fraction_bps'];
+}
+
+// "91,6" style percent (Indonesian comma, trailing ",0" trimmed). Truncates to
+// 1 decimal so 24K (99,99%) reads as 99,9% rather than rounding up to 100%.
+$pct_fmt = function ( $bps ) {
+	return rtrim( rtrim( number_format( floor( $bps / 10 ) / 10, 1, ',', '.' ), '0' ), ',' );
+};
+
+// Curated to the real gold grades Indonesians actually own — labelled by KARAT
+// (what customers know), with the gold % as a small helper. 17K and 18K are
+// kept as SEPARATE options even though SNI defines both as 750/75%, so a
+// customer picks whichever is stamped on their piece; both value identically.
+// Fraction prefers the shop's admin Purity Options, else the karat's N/24 value.
+$grade_defs = array(
+	array( 'value' => '24K', 'karats' => '24K' ),
+	array( 'value' => '22K', 'karats' => '22K' ),
+	array( 'value' => '21K', 'karats' => '21K' ),
+	array( 'value' => '18K', 'karats' => '18K' ),
+	array( 'value' => '17K', 'karats' => '17K' ),
+	array( 'value' => '16K', 'karats' => '16K' ),
+	array( 'value' => '14K', 'karats' => '14K' ),
+	array( 'value' => '9K',  'karats' => '9K' ),
+);
+
+$karat_options = array();
+foreach ( $grade_defs as $g ) {
+	$k   = (int) rtrim( $g['value'], 'K' );
+	$bps = $stored_bps[ $g['value'] ] ?? (int) round( $k / 24 * 10000 );
+	$karat_options[] = array(
+		'label'        => $g['value'],
+		'fraction_bps' => $bps,
+		'display'      => $g['karats'] . ' · ' . $pct_fmt( $bps ) . '% emas',
+	);
+}
+// "Belum tahu" — reuses the seeded label so the server still recognises it.
+if ( isset( $stored_bps['Tidak yakin / belum dicek'] ) ) {
+	$karat_options[] = array(
+		'label'        => 'Tidak yakin / belum dicek',
+		'fraction_bps' => $stored_bps['Tidak yakin / belum dicek'],
+		'display'      => 'Belum tahu kadarnya — dicek gratis di toko',
+	);
+}
+
+$fraction24     = ( $stored_bps['24K'] ?? 9999 ) / 10000; // Logam Mulia = 24K.
+$default_purity = '17K'; // Most common gold in Indonesia (750/75%).
+
+$existing_slug = get_query_var( 'verena_calc_slug' );
+$existing_list = $existing_slug ? verena_jt_get_calculator_list_by_slug( $existing_slug ) : null;
+
+$initial_items = array();
+if ( $existing_list && ! empty( $existing_list['items'] ) ) {
+	foreach ( $existing_list['items'] as $it ) {
+		$initial_items[] = array(
+			'category'     => '24K' === ( $it['purity_label'] ?? '' ) ? 'lm' : 'perhiasan',
+			'description'  => $it['description'] ?? '',
+			'weight_grams' => $it['weight_grams'] ?? '',
+			'purity_label' => $it['purity_label'] ?? '',
+			'denom'        => '',
+			'qty'          => 1,
+		);
+	}
+}
+if ( empty( $initial_items ) ) {
+	$initial_items[] = array(
+		'category'     => 'perhiasan',
+		'description'  => '',
+		'weight_grams' => '',
+		'purity_label' => $default_purity,
+		'denom'        => '',
+		'qty'          => 1,
+	);
+}
+
+$config = array(
+	'ratePerGram'   => $rate_per_gram,
+	'fraction24'    => $fraction24,
+	'purityOptions' => $karat_options,
+	'defaultPurity' => $default_purity,
+	'denomOptions'  => array( 0.5, 1, 2, 3, 5, 10, 25, 50, 100 ),
+	'weightPresets' => array(
+		array( 'label' => 'Cincin', 'grams' => 3 ),
+		array( 'label' => 'Kalung', 'grams' => 8 ),
+		array( 'label' => 'Gelang', 'grams' => 10 ),
+		array( 'label' => 'Anting (sepasang)', 'grams' => 2 ),
+		array( 'label' => 'Liontin', 'grams' => 3 ),
+	),
+	'waNumber'      => verena_whatsapp_number(),
+	'restUrl'       => esc_url_raw( rest_url( 'verena/v1/calculator' ) ),
+	'nonce'         => wp_create_nonce( 'verena_calculator' ),
+	'initialItems'  => $initial_items,
+	'existingSlug'  => $existing_slug ?: null,
+	'contactName'   => $existing_list['contact_name'] ?? '',
+	'contactWa'     => $existing_list['contact_whatsapp'] ?? '',
+	'disclaimer'    => verena_estimate_disclaimer(),
+	'maxItems'      => VERENA_JT_MAX_ITEMS_PER_LIST,
+);
+
+while ( have_posts() ) : the_post();
+	?>
+	<main class="container section">
+		<div class="section-narrow text-center" style="margin-bottom:var(--space-3);">
+			<p class="eyebrow">Kalkulator Kekayaan Emas</p>
+			<h1><?php the_title(); ?></h1>
+			<div class="stack"><?php the_content(); ?></div>
+			<p class="text-muted">Tambahkan perhiasan dan logam mulia Anda untuk melihat perkiraan nilainya hari ini — lalu jual langsung ke Verena lewat WhatsApp.</p>
+		</div>
+
+		<?php if ( ! $buyback_rate || empty( $karat_options ) ) : ?>
+			<div class="empty-state">
+				<p>Kalkulator sedang tidak tersedia. Silakan hubungi kami langsung.</p>
+				<?php verena_whatsapp_button( 'Halo Verena Jewellery, saya ingin menghitung nilai emas saya.', 'Tanya via WhatsApp' ); ?>
+			</div>
+		<?php else : ?>
+
+			<!-- How to use (3 simple steps) -->
+			<div class="calc-howto">
+				<div class="calc-howto__step">
+					<span class="calc-howto__num">1</span>
+					<p><strong>Tambahkan emas Anda</strong> — perhiasan atau logam mulia (emas batangan). Bisa lebih dari satu.</p>
+				</div>
+				<div class="calc-howto__step">
+					<span class="calc-howto__num">2</span>
+					<p><strong>Isi berat (gram) dan pilih kadar.</strong> Tidak tahu kadarnya? Pilih <em>“Belum tahu”</em> — kami cek gratis di toko.</p>
+				</div>
+				<div class="calc-howto__step">
+					<span class="calc-howto__num">3</span>
+					<p><strong>Lihat total nilainya</strong>, lalu kirim ke Verena lewat WhatsApp untuk dijual atau ditanyakan.</p>
+				</div>
+			</div>
+
+			<!-- What is karat? (collapsible so it never clutters the tool) -->
+			<details class="calc-edu">
+				<summary>
+					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="#C9A24B" stroke-width="1.6"/><path d="M9.5 9a2.5 2.5 0 0 1 4.9.6c0 1.7-2.4 2-2.4 3.4" stroke="#C9A24B" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="17" r="1" fill="#C9A24B"/></svg>
+					Apa itu “kadar / karat”, dan bagaimana cek kadar emas saya?
+				</summary>
+				<div class="calc-edu__body">
+					<p><strong>Karat (K)</strong> menunjukkan seberapa murni emas Anda. Makin tinggi karatnya, makin banyak kandungan emas murninya — sisanya campuran logam lain agar lebih kuat. Contoh: <strong>24K ≈ 99,9% emas</strong>, <strong>22K = 91,6%</strong>, <strong>18K = 75%</strong>.</p>
+					<p><strong>Cara cek kadar emas Anda:</strong> lihat cap/tanda kecil di bagian dalam perhiasan (mis. di dalam cincin atau ujung gelang). Di Indonesia biasanya tertera angka seperti ini:</p>
+					<table class="karat-ref">
+						<thead><tr><th>Cap di emas</th><th>Karat</th><th>Kandungan emas</th></tr></thead>
+						<tbody>
+							<tr><td>999 / 99.9</td><td>24K</td><td>99,9%</td></tr>
+							<tr><td>916 / 91.6</td><td>22K</td><td>91,6%</td></tr>
+							<tr><td>875</td><td>21K</td><td>87,5%</td></tr>
+							<tr><td>750</td><td>18K &amp; 17K</td><td>75%</td></tr>
+							<tr><td>700</td><td>16K</td><td>70%</td></tr>
+							<tr><td>375</td><td>9K</td><td>37,5%</td></tr>
+						</tbody>
+					</table>
+					<p>Kalau masih ragu, pilih <strong>“Belum tahu”</strong> saat menambah emas — kadar dan beratnya akan kami periksa <strong>gratis</strong> di toko sebelum harga final.</p>
+				</div>
+			</details>
+
+			<div x-data="verenaCalculator(<?php echo esc_attr( wp_json_encode( $config ) ); ?>)" class="calc-layout">
+
+				<!-- LEFT: items -->
+				<div class="calc-items">
+					<template x-for="(item, index) in items" :key="index">
+						<div class="calc-item">
+							<div class="calc-item__head">
+								<div class="calc-cat">
+									<button type="button" :class="{ 'is-active': item.category === 'perhiasan' }" @click="item.category = 'perhiasan'">Perhiasan</button>
+									<button type="button" :class="{ 'is-active': item.category === 'lm' }" @click="item.category = 'lm'">Logam Mulia</button>
+								</div>
+								<button type="button" class="calc-remove" @click="removeItem(index)" x-show="items.length > 1" aria-label="Hapus item">&times;</button>
+							</div>
+
+							<!-- Perhiasan (jewellery): weight + karat -->
+							<template x-if="item.category === 'perhiasan'">
+								<div>
+									<div class="calc-fields calc-fields--triple">
+										<div class="form-field mb-0">
+											<label>Deskripsi</label>
+											<input type="text" x-model="item.description" placeholder="cth. Kalung ibu">
+										</div>
+										<div class="form-field mb-0">
+											<label>Berat (gram)</label>
+											<input type="number" min="0" step="0.01" x-model.number="item.weight_grams" placeholder="0">
+										</div>
+										<div class="form-field mb-0">
+											<label>Kadar Emas</label>
+											<select x-model="item.purity_label">
+												<template x-for="option in purityOptions" :key="option.label">
+													<option :value="option.label" x-text="option.display"></option>
+												</template>
+											</select>
+										</div>
+									</div>
+									<p class="calc-hint">
+										Tidak tahu beratnya? Timbang dengan timbangan digital, cek nota/sertifikat, atau perkirakan:
+										<select @change="applyPreset(item, $event)" style="margin-left:6px;padding:4px 8px;font-size:12px;width:auto;display:inline-block;">
+											<option value="">— perkirakan —</option>
+											<template x-for="p in weightPresets" :key="p.label">
+												<option :value="p.grams" x-text="p.label + ' (~' + p.grams + ' gr)'"></option>
+											</template>
+										</select>
+										<br>Berat &amp; kadar final ditimbang &amp; diuji gratis di toko.
+									</p>
+								</div>
+							</template>
+
+							<!-- Logam Mulia (bars): denomination × qty, 24K -->
+							<template x-if="item.category === 'lm'">
+								<div>
+									<div class="calc-fields calc-fields--triple">
+										<div class="form-field mb-0">
+											<label>Merek / Deskripsi</label>
+											<input type="text" x-model="item.description" placeholder="cth. Antam, UBS">
+										</div>
+										<div class="form-field mb-0">
+											<label>Ukuran (gram)</label>
+											<select x-model.number="item.denom">
+												<option value="">Pilih</option>
+												<template x-for="d in denomOptions" :key="d">
+													<option :value="d" x-text="d + ' gram'"></option>
+												</template>
+											</select>
+										</div>
+										<div class="form-field mb-0">
+											<label>Jumlah</label>
+											<input type="number" min="1" step="1" x-model.number="item.qty" placeholder="1">
+										</div>
+									</div>
+									<p class="calc-hint">Emas murni 24K (999). Ukuran tertera di keping &amp; sertifikat, jadi nilainya pasti.</p>
+								</div>
+							</template>
+
+							<div class="calc-item__foot">
+								<span class="calc-item__foot-label">Perkiraan nilai</span>
+								<span class="calc-item__value" x-text="formatRp(estimateFor(item))"></span>
+							</div>
+						</div>
+					</template>
+
+					<button type="button" class="btn btn-outline calc-add" @click="addItem()" x-show="items.length < maxItems">+ Tambah Emas</button>
+				</div>
+
+				<!-- RIGHT: sticky total + funnel -->
+				<div class="calc-summary">
+					<div class="calc-summary-card">
+						<h3>Estimasi Nilai Emas Anda</h3>
+						<p class="calc-sub"><span x-text="validItems.length"></span> item &middot; harga buyback hari ini</p>
+						<div class="calc-total-big" x-text="formattedTotal"></div>
+						<p class="calc-subtotals">
+							Perhiasan: <strong x-text="formatRp(subtotalPerhiasan)"></strong> &middot;
+							Logam Mulia: <strong x-text="formatRp(subtotalLm)"></strong>
+						</p>
+
+						<a class="btn btn-gold btn-block" target="_blank" rel="noopener" :href="sellWaLink">
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.87.5 3.62 1.38 5.13L2 22l5.05-1.32A9.94 9.94 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2z"/></svg>
+							Jual ke Verena via WhatsApp
+						</a>
+
+						<p class="calc-disclaimer" x-text="disclaimer"></p>
+
+						<div class="calc-save">
+							<h4>Simpan &amp; dapatkan link</h4>
+							<div class="form-field mb-0">
+								<input type="text" x-model="contactName" placeholder="Nama (opsional)">
+							</div>
+							<div class="form-field mb-0">
+								<input type="text" x-model="contactWa" placeholder="No. WhatsApp (opsional)">
+							</div>
+							<div class="honeypot-field" aria-hidden="true">
+								<input type="text" x-model="website" tabindex="-1" autocomplete="off">
+							</div>
+							<button type="button" class="btn btn-outline-light btn-block" @click="saveList()" :disabled="saving" x-text="saving ? 'Menyimpan...' : 'Simpan & Dapatkan Link'"></button>
+							<p x-show="saveError" x-text="saveError" style="color:#ffb3a3;font-size:0.8rem;margin-top:0.5rem;"></p>
+							<div class="share-link-box mt-4" x-show="shareUrl" x-cloak>
+								<code x-text="shareUrl" style="font-size:0.8rem;word-break:break-all;"></code>
+								<button type="button" class="btn btn-outline-light btn-sm" @click="copyLink()" x-text="copied ? 'Tersalin!' : 'Salin'"></button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<script>
+				function verenaCalculator( config ) {
+					return {
+						items: config.initialItems.map( ( item ) => ( {
+							category: item.category || 'perhiasan',
+							description: item.description || '',
+							weight_grams: item.weight_grams || '',
+							purity_label: item.purity_label || config.defaultPurity,
+							denom: item.denom || '',
+							qty: item.qty || 1,
+						} ) ),
+						purityOptions: config.purityOptions,
+						defaultPurity: config.defaultPurity,
+						denomOptions: config.denomOptions,
+						weightPresets: config.weightPresets,
+						ratePerGram: config.ratePerGram,
+						fraction24: config.fraction24,
+						waNumber: config.waNumber,
+						restUrl: config.restUrl,
+						nonce: config.nonce,
+						disclaimer: config.disclaimer,
+						maxItems: config.maxItems,
+						existingSlug: config.existingSlug,
+						contactName: config.contactName || '',
+						contactWa: config.contactWa || '',
+						website: '',
+						saving: false,
+						saveError: '',
+						shareUrl: config.existingSlug ? window.location.href : '',
+						copied: false,
+
+						addItem() {
+							if ( this.items.length >= this.maxItems ) return;
+							this.items.push( { category: 'perhiasan', description: '', weight_grams: '', purity_label: this.defaultPurity, denom: '', qty: 1 } );
+						},
+						removeItem( index ) { this.items.splice( index, 1 ); },
+						applyPreset( item, event ) {
+							const v = parseFloat( event.target.value );
+							if ( v > 0 ) { item.weight_grams = v; }
+							event.target.value = '';
+						},
+						gramsFor( item ) {
+							if ( item.category === 'lm' ) {
+								return ( parseFloat( item.denom ) || 0 ) * ( parseInt( item.qty ) || 0 );
+							}
+							return parseFloat( item.weight_grams ) || 0;
+						},
+						fractionFor( item ) {
+							if ( item.category === 'lm' ) { return this.fraction24; }
+							const p = this.purityOptions.find( ( o ) => o.label === item.purity_label );
+							return p ? p.fraction_bps / 10000 : 0;
+						},
+						estimateFor( item ) {
+							const grams = this.gramsFor( item );
+							const fraction = this.fractionFor( item );
+							if ( grams <= 0 || fraction <= 0 || ! this.ratePerGram ) { return 0; }
+							return Math.round( grams * fraction * this.ratePerGram / 100 ) * 100;
+						},
+						get validItems() { return this.items.filter( ( it ) => this.gramsFor( it ) > 0 ); },
+						get total() { return this.validItems.reduce( ( sum, it ) => sum + this.estimateFor( it ), 0 ); },
+						get subtotalPerhiasan() { return this.validItems.filter( ( it ) => it.category !== 'lm' ).reduce( ( s, it ) => s + this.estimateFor( it ), 0 ); },
+						get subtotalLm() { return this.validItems.filter( ( it ) => it.category === 'lm' ).reduce( ( s, it ) => s + this.estimateFor( it ), 0 ); },
+						formatRp( n ) { return 'Rp' + ( n || 0 ).toLocaleString( 'id-ID' ); },
+						get formattedTotal() { return this.formatRp( this.total ); },
+
+						itemToPayload( it ) {
+							const grams = this.gramsFor( it );
+							const label = it.category === 'lm' ? '24K' : it.purity_label;
+							const prefix = it.category === 'lm' ? '[Logam Mulia] ' : '[Perhiasan] ';
+							let desc = prefix + ( it.description || ( it.category === 'lm' ? 'Emas batangan' : 'Perhiasan' ) );
+							if ( it.category === 'lm' && it.denom ) { desc += ' ' + it.denom + 'gr x' + ( it.qty || 1 ); }
+							return { description: desc, weight_grams: grams, purity_label: label };
+						},
+						get sellWaLink() {
+							const lines = [ 'Halo Verena Jewellery, saya ingin jual emas berikut:' ];
+							const maxLines = 10;
+							this.validItems.slice( 0, maxLines ).forEach( ( it ) => {
+								const cat = it.category === 'lm' ? 'Logam Mulia' : 'Perhiasan';
+								const detail = it.category === 'lm'
+									? ( ( it.denom || '?' ) + ' gr x' + ( it.qty || 1 ) + ', 24K' )
+									: ( this.gramsFor( it ) + ' gr, kadar ' + it.purity_label );
+								const desc = it.description || cat;
+								lines.push( '- ' + desc + ' (' + cat + '): ' + detail + ' (~' + this.formatRp( this.estimateFor( it ) ) + ')' );
+							} );
+							if ( this.validItems.length > maxLines ) {
+								lines.push( '...dan ' + ( this.validItems.length - maxLines ) + ' item lainnya.' );
+							}
+							lines.push( '' );
+							lines.push( 'Estimasi total: ' + this.formattedTotal );
+							if ( this.shareUrl ) { lines.push( 'Daftar lengkap: ' + this.shareUrl ); }
+							lines.push( '' );
+							lines.push( this.disclaimer );
+							return 'https://wa.me/' + this.waNumber + '?text=' + encodeURIComponent( lines.join( '\n' ) );
+						},
+						async saveList() {
+							if ( this.validItems.length === 0 ) {
+								this.saveError = 'Tambahkan minimal satu item dengan berat yang valid.';
+								return;
+							}
+							this.saving = true;
+							this.saveError = '';
+							const payload = {
+								items: this.validItems.map( ( it ) => this.itemToPayload( it ) ),
+								contact_name: this.contactName,
+								contact_whatsapp: this.contactWa,
+								security: this.nonce,
+								website: this.website,
+							};
+							const url = this.existingSlug ? this.restUrl + '/' + this.existingSlug : this.restUrl;
+							const method = this.existingSlug ? 'PUT' : 'POST';
+							try {
+								const response = await fetch( url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify( payload ) } );
+								const data = await response.json();
+								if ( ! response.ok ) { throw new Error( data.message || 'Gagal menyimpan.' ); }
+								this.existingSlug = data.slug;
+								this.shareUrl = data.shareable_url;
+								window.history.replaceState( {}, '', data.shareable_url );
+							} catch ( error ) {
+								this.saveError = error.message || 'Terjadi kesalahan, silakan coba lagi.';
+							} finally {
+								this.saving = false;
+							}
+						},
+						copyLink() {
+							navigator.clipboard.writeText( this.shareUrl ).then( () => {
+								this.copied = true;
+								setTimeout( () => { this.copied = false; }, 2000 );
+							} );
+						},
+					};
+				}
+			</script>
+		<?php endif; ?>
+	</main>
+	<?php
+endwhile;
+get_footer();
