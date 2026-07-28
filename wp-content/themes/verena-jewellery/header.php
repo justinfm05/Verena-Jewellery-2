@@ -12,7 +12,6 @@ $logo_url = get_template_directory_uri() . '/assets/img/verena-logo-stacked.png'
 $wa_nav   = verena_wa_url( 'Halo Verena Jewellery, saya ingin bertanya tentang perhiasan.' );
 
 $layanan = array(
-	array( 'label' => 'Logam Mulia',         'url' => verena_page_url( 'bullion' ) ),
 	array( 'label' => 'Servis & Perbaikan',  'url' => verena_page_url( 'repairs' ) ),
 	array( 'label' => 'Buyback Emas',        'url' => verena_page_url( 'buyback' ) ),
 	array( 'label' => 'Kalkulator Emas',     'url' => verena_page_url( 'calculator' ) ),
@@ -44,6 +43,7 @@ $layanan = array(
 
 		<nav class="primary-nav" aria-label="Primary">
 			<a class="navlink" href="<?php echo esc_url( verena_page_url( 'collection' ) ); ?>">Koleksi</a>
+			<a class="navlink" href="<?php echo esc_url( verena_page_url( 'bullion' ) ); ?>">Logam Mulia</a>
 			<a class="navlink" href="<?php echo esc_url( verena_page_url( 'collection', '?category=cincin-kawin' ) ); ?>">Cincin Kawin</a>
 			<a class="navlink" href="<?php echo esc_url( verena_page_url( 'custom' ) ); ?>">Custom Design</a>
 			<div class="has-dropdown" data-dropdown>
@@ -73,6 +73,7 @@ $layanan = array(
 
 	<nav class="mobile-nav" aria-label="Mobile" data-mobile-nav>
 		<a href="<?php echo esc_url( verena_page_url( 'collection' ) ); ?>">Koleksi</a>
+		<a href="<?php echo esc_url( verena_page_url( 'bullion' ) ); ?>">Logam Mulia</a>
 		<a href="<?php echo esc_url( verena_page_url( 'collection', '?category=cincin-kawin' ) ); ?>">Cincin Kawin</a>
 		<a href="<?php echo esc_url( verena_page_url( 'custom' ) ); ?>">Custom Design</a>
 		<p class="mobile-nav__label">Layanan</p>

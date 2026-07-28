@@ -1,10 +1,13 @@
 <?php
 /**
- * Bullion brand overview. Create a WP Page with slug "logam-mulia". Then create
- * three CHILD pages under it with slugs "antam", "ubs", "emasku" (so their
- * URLs become /logam-mulia/antam/ etc.) and assign each the "Bullion Brand"
- * page template (template-bullion-brand.php) — the template matches the
- * brand by the page's own slug against the verena_bullion_brand taxonomy.
+ * Bullion (Logam Mulia) overview page. Create a WP Page with slug "logam-mulia"
+ * — this template shows a logo strip for the three brands plus one price
+ * table per brand, all inline on this single page.
+ *
+ * Prices come from the shop's shared Google Sheet, synced every 5 minutes by
+ * the Verena Jewellery Tools plugin (see inc/bullion-sheet-sync.php in the
+ * plugin) — this template only ever reads the cached result, never fetches
+ * the sheet live itself.
  *
  * @package Verena_Jewellery
  */
@@ -15,10 +18,18 @@ get_header();
 while ( have_posts() ) : the_post();
 
 	$brands = array(
-		'antam'  => 'Antam',
-		'ubs'    => 'UBS',
-		'emasku' => 'Emasku',
+		'Antam'  => 'antam-logo.png',
+		'Emasku' => 'emasku-logo.png',
+		'UBS'    => 'ubs-logo.png',
 	);
+
+	$sheet = verena_get_bullion_sheet_data();
+
+	// Always show this in Jakarta time regardless of the site's own configured
+	// WordPress timezone setting, since the shop and "WIB" label are fixed.
+	$updated_label = $sheet['fetched_at']
+		? wp_date( 'j F Y, H:i', $sheet['fetched_at'], new DateTimeZone( 'Asia/Jakarta' ) ) . ' WIB'
+		: null;
 	?>
 	<main class="container section">
 		<div class="text-center section-narrow" style="margin-bottom:var(--space-4);">
@@ -27,21 +38,96 @@ while ( have_posts() ) : the_post();
 			<div class="text-muted"><?php the_content(); ?></div>
 		</div>
 
-		<div class="grid">
-			<?php foreach ( $brands as $slug => $name ) : ?>
-				<?php
-				$child_page = get_page_by_path( verena_page_slug( 'bullion' ) . '/' . $slug );
-				$brand_url = $child_page ? get_permalink( $child_page ) : verena_page_url( 'bullion', $slug . '/' );
-				$count = count( verena_get_bullion_by_brand( $slug ) );
-				?>
-				<a class="card" href="<?php echo esc_url( $brand_url ); ?>">
-					<div class="card__body">
-						<h3 class="card__title"><?php echo esc_html( $name ); ?></h3>
-						<p class="text-muted mb-0"><?php echo esc_html( $count ); ?> denominasi tersedia</p>
+		<?php
+		// Only Antam links out to its own inquire page for now — Emasku/UBS
+		// get the same treatment in a later pass.
+		$antam_page = get_page_by_path( verena_page_slug( 'bullion' ) . '/antam' );
+		$brand_urls = array(
+			'Antam' => $antam_page ? get_permalink( $antam_page ) : verena_page_url( 'bullion', 'antam/' ),
+		);
+		?>
+		<p><strong>Beli Sekarang:</strong></p>
+		<div class="brand-strip">
+			<?php foreach ( $brands as $name => $logo_file ) : ?>
+				<?php if ( isset( $brand_urls[ $name ] ) ) : ?>
+					<a class="brand-badge" href="<?php echo esc_url( $brand_urls[ $name ] ); ?>">
+						<img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/' . $logo_file ); ?>" alt="<?php echo esc_attr( $name ); ?>" />
+					</a>
+				<?php else : ?>
+					<div class="brand-badge">
+						<img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/' . $logo_file ); ?>" alt="<?php echo esc_attr( $name ); ?>" />
 					</div>
-				</a>
+				<?php endif; ?>
 			<?php endforeach; ?>
 		</div>
+
+		<p class="text-muted">Harga kami terjamin paling murah, beli sekarang di Verena Jewellery. Info harga emas akan terkini:</p>
+
+		<h3 class="mt-4">Antam</h3>
+		<?php if ( empty( $sheet['antam'] ) ) : ?>
+			<p class="text-muted">Harga belum tersedia saat ini.</p>
+		<?php else : ?>
+			<div class="table-scroll mb-4">
+				<table class="price-table">
+					<thead>
+						<tr>
+							<th>Gram</th>
+							<th>2026 Jual</th>
+							<th>2026 Buyback</th>
+							<th>2025 Jual</th>
+							<th>2025 Buyback</th>
+							<th>2021-2024 Jual</th>
+							<th>2021-2024 Buyback</th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php foreach ( $sheet['antam'] as $row ) : ?>
+							<tr>
+								<td><?php echo esc_html( verena_format_grams( $row['gram'] ) ); ?></td>
+								<?php foreach ( array( '2026', '2025', '2021-2024' ) as $year ) : ?>
+									<td><?php echo null !== $row[ $year ]['sell'] ? esc_html( verena_format_idr( $row[ $year ]['sell'] ) ) : '—'; ?></td>
+									<td><?php echo null !== $row[ $year ]['buyback'] ? esc_html( verena_format_idr( $row[ $year ]['buyback'] ) ) : '—'; ?></td>
+								<?php endforeach; ?>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+			</div>
+			<?php if ( $updated_label ) : ?>
+				<p class="text-muted" style="font-size:0.85rem;">Harga terakhir diperbarui: <?php echo esc_html( $updated_label ); ?></p>
+			<?php endif; ?>
+		<?php endif; ?>
+
+		<?php foreach ( array( 'Emasku' => 'emasku', 'UBS' => 'ubs' ) as $label => $key ) : ?>
+			<h3 class="mt-4"><?php echo esc_html( $label ); ?></h3>
+			<?php if ( empty( $sheet[ $key ] ) ) : ?>
+				<p class="text-muted">Harga belum tersedia saat ini.</p>
+			<?php else : ?>
+				<div class="table-scroll mb-4">
+					<table class="price-table">
+						<thead>
+							<tr>
+								<th>Gram</th>
+								<th>Harga Jual</th>
+								<th>Harga Buyback</th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach ( $sheet[ $key ] as $row ) : ?>
+								<tr>
+									<td><?php echo esc_html( verena_format_grams( $row['gram'] ) ); ?></td>
+									<td><?php echo null !== $row['sell'] ? esc_html( verena_format_idr( $row['sell'] ) ) : '—'; ?></td>
+									<td><?php echo null !== $row['buyback'] ? esc_html( verena_format_idr( $row['buyback'] ) ) : '—'; ?></td>
+								</tr>
+							<?php endforeach; ?>
+						</tbody>
+					</table>
+				</div>
+				<?php if ( $updated_label ) : ?>
+					<p class="text-muted" style="font-size:0.85rem;">Harga terakhir diperbarui: <?php echo esc_html( $updated_label ); ?></p>
+				<?php endif; ?>
+			<?php endif; ?>
+		<?php endforeach; ?>
 	</main>
 	<?php
 endwhile;

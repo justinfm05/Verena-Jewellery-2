@@ -601,7 +601,31 @@ p { margin: 0 0 var(--space-2); }
 }
 .price-table tbody tr:nth-child(even) { background: var(--bg-alt); }
 .price-table tbody tr:hover { background: rgba(201, 162, 75, 0.14); }
-.price-table td:nth-child(3), .price-table td:nth-child(4) { font-weight: 700; font-family: var(--font-display); font-size: 1.05rem; color: var(--forest); }
+
+/* Logam Mulia brand strip — three equal-width badges spanning the full container, so the middle one sits at page-center. */
+.brand-strip { display: grid; grid-template-columns: 1fr; gap: 16px; margin: var(--space-2) 0 var(--space-3); }
+@media (min-width: 720px) { .brand-strip { grid-template-columns: repeat(3, 1fr); gap: 24px; } }
+.brand-badge {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	padding: 0.5rem 2rem;
+	background: #FFFFFF;
+	border: 1px solid var(--line-light);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-sm);
+	cursor: pointer;
+	transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+.brand-badge:hover { box-shadow: var(--shadow-md); transform: translateY(-3px); border-color: var(--gold); }
+.brand-badge img { height: 88px; width: auto; max-width: 100%; object-fit: contain; display: block; }
+
+/* Bullion brand detail page (e.g. Antam) — photo + gram/tahun/harga picker. */
+.bullion-detail { display: grid; grid-template-columns: 1fr; gap: var(--space-4); align-items: start; }
+@media (min-width: 720px) { .bullion-detail { grid-template-columns: 1fr 1fr; } }
+.bullion-detail__photo { width: 100%; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); display: block; }
+.bullion-detail__price { font-size: 1.5rem; font-weight: 700; color: var(--forest); margin: 0; }
 
 /* ------------------------------------------------------------------ */
 /* Forms (calculator / estimator / custom design)                     */
@@ -854,5 +878,6 @@ p { margin: 0 0 var(--space-2); }
 .stack { display: flex; flex-direction: column; gap: var(--space-2); }
 .row { display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: center; }
 .mt-4 { margin-top: var(--space-4); }
+.mb-4 { margin-bottom: var(--space-4); }
 .mb-0 { margin-bottom: 0; }
 .empty-state { text-align: center; padding: var(--space-5) var(--space-2); color: var(--text-muted); }
