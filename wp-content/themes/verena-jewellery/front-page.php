@@ -41,7 +41,7 @@ $placeholder_products = array(
 					<?php echo verena_wa_icon( 18 ); // phpcs:ignore -- trusted inline SVG. ?>
 					Chat via WhatsApp
 				</a>
-				<a class="btn btn-outline-light" href="#collections">Lihat Koleksi</a>
+				<a class="btn btn-outline-light" href="<?php echo esc_url( verena_page_url( 'bullion' ) ); ?>">Lihat Harga Emas Hari Ini</a>
 			</div>
 		</div>
 	</div>

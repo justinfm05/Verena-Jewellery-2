@@ -11,10 +11,18 @@ $shop     = verena_shop_info();
 $logo_url = get_template_directory_uri() . '/assets/img/verena-logo-stacked.png';
 $wa_nav   = verena_wa_url( 'Halo Verena Jewellery, saya ingin bertanya tentang perhiasan.' );
 
-$layanan = array(
-	array( 'label' => 'Servis & Perbaikan',  'url' => verena_page_url( 'repairs' ) ),
-	array( 'label' => 'Buyback Emas',        'url' => verena_page_url( 'buyback' ) ),
-	array( 'label' => 'Kalkulator Emas',     'url' => verena_page_url( 'calculator' ) ),
+// Every nav link below is gated by verena_page_is_published() — a page that's
+// still Draft (or hasn't been created yet) simply doesn't appear in the nav,
+// rather than linking out to a dead/404 page. Flip a page to Published in
+// wp-admin whenever it's ready and it'll show up here automatically.
+$layanan = array_filter(
+	array(
+		array( 'key' => 'repairs',    'label' => 'Servis & Perbaikan', 'url' => verena_page_url( 'repairs' ) ),
+		array( 'key' => 'calculator', 'label' => 'Kalkulator Emas',    'url' => verena_page_url( 'calculator' ) ),
+	),
+	function ( $item ) {
+		return verena_page_is_published( $item['key'] );
+	}
 );
 ?>
 <!DOCTYPE html>
@@ -42,22 +50,37 @@ $layanan = array(
 		<?php endif; ?>
 
 		<nav class="primary-nav" aria-label="Primary">
-			<a class="navlink" href="<?php echo esc_url( verena_page_url( 'collection' ) ); ?>">Koleksi</a>
-			<a class="navlink" href="<?php echo esc_url( verena_page_url( 'bullion' ) ); ?>">Logam Mulia</a>
-			<a class="navlink" href="<?php echo esc_url( verena_page_url( 'collection', '?category=cincin-kawin' ) ); ?>">Cincin Kawin</a>
-			<a class="navlink" href="<?php echo esc_url( verena_page_url( 'custom' ) ); ?>">Custom Design</a>
-			<div class="has-dropdown" data-dropdown>
-				<button class="navlink" type="button" aria-haspopup="true" aria-expanded="false" data-dropdown-toggle>
-					Layanan
-					<svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-				</button>
-				<div class="nav-dropdown" role="menu">
-					<?php foreach ( $layanan as $item ) : ?>
-						<a href="<?php echo esc_url( $item['url'] ); ?>" role="menuitem"><?php echo esc_html( $item['label'] ); ?></a>
-					<?php endforeach; ?>
+			<?php if ( verena_page_is_published( 'collection' ) ) : ?>
+				<a class="navlink" href="<?php echo esc_url( verena_page_url( 'collection' ) ); ?>">Koleksi</a>
+			<?php endif; ?>
+			<?php if ( verena_page_is_published( 'bullion' ) ) : ?>
+				<a class="navlink" href="<?php echo esc_url( verena_page_url( 'bullion' ) ); ?>">Logam Mulia</a>
+			<?php endif; ?>
+			<?php if ( verena_page_is_published( 'collection' ) ) : ?>
+				<a class="navlink" href="<?php echo esc_url( verena_page_url( 'collection', '?category=cincin-kawin' ) ); ?>">Cincin Kawin</a>
+			<?php endif; ?>
+			<?php if ( verena_page_is_published( 'custom' ) ) : ?>
+				<a class="navlink" href="<?php echo esc_url( verena_page_url( 'custom' ) ); ?>">Custom Design</a>
+			<?php endif; ?>
+			<?php if ( verena_page_is_published( 'buyback' ) ) : ?>
+				<a class="navlink" href="<?php echo esc_url( verena_page_url( 'buyback' ) ); ?>">Jual Emas</a>
+			<?php endif; ?>
+			<?php if ( ! empty( $layanan ) ) : ?>
+				<div class="has-dropdown" data-dropdown>
+					<button class="navlink" type="button" aria-haspopup="true" aria-expanded="false" data-dropdown-toggle>
+						Layanan
+						<svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+					</button>
+					<div class="nav-dropdown" role="menu">
+						<?php foreach ( $layanan as $item ) : ?>
+							<a href="<?php echo esc_url( $item['url'] ); ?>" role="menuitem"><?php echo esc_html( $item['label'] ); ?></a>
+						<?php endforeach; ?>
+					</div>
 				</div>
-			</div>
-			<a class="navlink" href="<?php echo esc_url( verena_page_url( 'about' ) ); ?>">Tentang Kami</a>
+			<?php endif; ?>
+			<?php if ( verena_page_is_published( 'about' ) ) : ?>
+				<a class="navlink" href="<?php echo esc_url( verena_page_url( 'about' ) ); ?>">Tentang Kami</a>
+			<?php endif; ?>
 		</nav>
 
 		<div class="header-actions">
@@ -72,16 +95,35 @@ $layanan = array(
 	</div>
 
 	<nav class="mobile-nav" aria-label="Mobile" data-mobile-nav>
-		<a href="<?php echo esc_url( verena_page_url( 'collection' ) ); ?>">Koleksi</a>
-		<a href="<?php echo esc_url( verena_page_url( 'bullion' ) ); ?>">Logam Mulia</a>
-		<a href="<?php echo esc_url( verena_page_url( 'collection', '?category=cincin-kawin' ) ); ?>">Cincin Kawin</a>
-		<a href="<?php echo esc_url( verena_page_url( 'custom' ) ); ?>">Custom Design</a>
-		<p class="mobile-nav__label">Layanan</p>
-		<?php foreach ( $layanan as $item ) : ?>
-			<a href="<?php echo esc_url( $item['url'] ); ?>"><?php echo esc_html( $item['label'] ); ?></a>
-		<?php endforeach; ?>
-		<p class="mobile-nav__label">Lainnya</p>
-		<a href="<?php echo esc_url( verena_page_url( 'about' ) ); ?>">Tentang Kami</a>
-		<a href="<?php echo esc_url( verena_page_url( 'contact' ) ); ?>">Kontak</a>
+		<?php if ( verena_page_is_published( 'collection' ) ) : ?>
+			<a href="<?php echo esc_url( verena_page_url( 'collection' ) ); ?>">Koleksi</a>
+		<?php endif; ?>
+		<?php if ( verena_page_is_published( 'bullion' ) ) : ?>
+			<a href="<?php echo esc_url( verena_page_url( 'bullion' ) ); ?>">Logam Mulia</a>
+		<?php endif; ?>
+		<?php if ( verena_page_is_published( 'collection' ) ) : ?>
+			<a href="<?php echo esc_url( verena_page_url( 'collection', '?category=cincin-kawin' ) ); ?>">Cincin Kawin</a>
+		<?php endif; ?>
+		<?php if ( verena_page_is_published( 'custom' ) ) : ?>
+			<a href="<?php echo esc_url( verena_page_url( 'custom' ) ); ?>">Custom Design</a>
+		<?php endif; ?>
+		<?php if ( verena_page_is_published( 'buyback' ) ) : ?>
+			<a href="<?php echo esc_url( verena_page_url( 'buyback' ) ); ?>">Jual Emas</a>
+		<?php endif; ?>
+		<?php if ( ! empty( $layanan ) ) : ?>
+			<p class="mobile-nav__label">Layanan</p>
+			<?php foreach ( $layanan as $item ) : ?>
+				<a href="<?php echo esc_url( $item['url'] ); ?>"><?php echo esc_html( $item['label'] ); ?></a>
+			<?php endforeach; ?>
+		<?php endif; ?>
+		<?php if ( verena_page_is_published( 'about' ) || verena_page_is_published( 'contact' ) ) : ?>
+			<p class="mobile-nav__label">Lainnya</p>
+			<?php if ( verena_page_is_published( 'about' ) ) : ?>
+				<a href="<?php echo esc_url( verena_page_url( 'about' ) ); ?>">Tentang Kami</a>
+			<?php endif; ?>
+			<?php if ( verena_page_is_published( 'contact' ) ) : ?>
+				<a href="<?php echo esc_url( verena_page_url( 'contact' ) ); ?>">Kontak</a>
+			<?php endif; ?>
+		<?php endif; ?>
 	</nav>
 </header>

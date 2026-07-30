@@ -259,4 +259,22 @@ function verena_page_url( $key, $extra = '' ) {
 	return home_url( '/' . verena_page_slug( $key ) . '/' . $extra );
 }
 
+/**
+ * Whether a mapped page actually exists and is published — lets nav links
+ * automatically hide pages that are still Draft or not yet created, instead
+ * of linking to a dead/404 page. Toggle a page to Draft/Published in
+ * wp-admin to hide/show it from nav; no code changes needed either way.
+ *
+ * @param string $key See verena_page_slug().
+ * @return bool
+ */
+function verena_page_is_published( $key ) {
+	$slug = verena_page_slug( $key );
+	if ( '' === $slug ) {
+		return false;
+	}
+	$page = get_page_by_path( $slug );
+	return $page instanceof WP_Post && 'publish' === $page->post_status;
+}
+
 require_once get_template_directory() . '/inc/template-helpers.php';

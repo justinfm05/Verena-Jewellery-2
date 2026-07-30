@@ -39,12 +39,16 @@ while ( have_posts() ) : the_post();
 		</div>
 
 		<?php
-		// Only Antam links out to its own inquire page for now — Emasku/UBS
-		// get the same treatment in a later pass.
-		$antam_page = get_page_by_path( verena_page_slug( 'bullion' ) . '/antam' );
-		$brand_urls = array(
-			'Antam' => $antam_page ? get_permalink( $antam_page ) : verena_page_url( 'bullion', 'antam/' ),
-		);
+		$bullion_slug = verena_page_slug( 'bullion' );
+		$brand_urls   = array();
+		foreach ( array(
+			'Antam'  => 'antam',
+			'Emasku' => 'emasku',
+			'UBS'    => 'ubs',
+		) as $brand_name => $brand_slug ) {
+			$brand_page               = get_page_by_path( $bullion_slug . '/' . $brand_slug );
+			$brand_urls[ $brand_name ] = $brand_page ? get_permalink( $brand_page ) : verena_page_url( 'bullion', $brand_slug . '/' );
+		}
 		?>
 		<p><strong>Beli Sekarang:</strong></p>
 		<div class="brand-strip">
