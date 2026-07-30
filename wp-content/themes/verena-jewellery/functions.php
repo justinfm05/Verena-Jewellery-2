@@ -277,4 +277,22 @@ function verena_page_is_published( $key ) {
 	return $page instanceof WP_Post && 'publish' === $page->post_status;
 }
 
+/**
+ * Theme asset URL with a filemtime-based cache-buster. Logo/photo <img> tags
+ * are hand-written with a plain path (not wp_enqueue'd), so replacing a file
+ * on disk (same filename, new bytes — e.g. swapping in a sharper logo) would
+ * otherwise keep serving the old cached bytes from browsers and the host's
+ * page cache indefinitely, since the URL never changes. Appending the file's
+ * own mtime makes the URL change automatically whenever the file does.
+ *
+ * @param string $relative_path Path under the theme root, e.g. 'assets/img/antam-logo.png'.
+ * @return string
+ */
+function verena_asset_url( $relative_path ) {
+	$relative_path = ltrim( $relative_path, '/' );
+	$file_path     = get_template_directory() . '/' . $relative_path;
+	$version       = file_exists( $file_path ) ? filemtime( $file_path ) : VERENA_THEME_VERSION;
+	return get_template_directory_uri() . '/' . $relative_path . '?ver=' . $version;
+}
+
 require_once get_template_directory() . '/inc/template-helpers.php';

@@ -41,9 +41,9 @@ while ( have_posts() ) : the_post();
 			>
 				<div class="bullion-detail__media">
 					<div class="brand-badge" style="margin-bottom:var(--space-2);">
-						<img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/emasku-logo.png' ); ?>" alt="Emasku" />
+						<img src="<?php echo esc_url( verena_asset_url( 'assets/img/emasku-logo.png' ) ); ?>" alt="Emasku" />
 					</div>
-					<img class="bullion-detail__photo" src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/emasku-bar-photo.png' ); ?>" alt="Emasku Fine Gold 999.9 bar" />
+					<img class="bullion-detail__photo" src="<?php echo esc_url( verena_asset_url( 'assets/img/emasku-bar-photo.png' ) ); ?>" alt="Emasku Fine Gold 999.9 bar" />
 				</div>
 
 				<div class="bullion-detail__form">

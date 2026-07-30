@@ -41,9 +41,9 @@ while ( have_posts() ) : the_post();
 			>
 				<div class="bullion-detail__media">
 					<div class="brand-badge" style="margin-bottom:var(--space-2);">
-						<img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/ubs-logo.png' ); ?>" alt="UBS" />
+						<img src="<?php echo esc_url( verena_asset_url( 'assets/img/ubs-logo.png' ) ); ?>" alt="UBS" />
 					</div>
-					<img class="bullion-detail__photo" src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/ubs-bar-photo.png' ); ?>" alt="UBS Gold Bar" />
+					<img class="bullion-detail__photo" src="<?php echo esc_url( verena_asset_url( 'assets/img/ubs-bar-photo.png' ) ); ?>" alt="UBS Gold Bar" />
 				</div>
 
 				<div class="bullion-detail__form">

@@ -44,9 +44,9 @@ while ( have_posts() ) : the_post();
 			>
 				<div class="bullion-detail__media">
 					<div class="brand-badge" style="margin-bottom:var(--space-2);">
-						<img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/antam-logo.png' ); ?>" alt="Antam" />
+						<img src="<?php echo esc_url( verena_asset_url( 'assets/img/antam-logo.png' ) ); ?>" alt="Antam" />
 					</div>
-					<img class="bullion-detail__photo" src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/antam-bar-photo.jpg' ); ?>" alt="Antam Fine Gold 999.9 bar" />
+					<img class="bullion-detail__photo" src="<?php echo esc_url( verena_asset_url( 'assets/img/antam-bar-photo.jpg' ) ); ?>" alt="Antam Fine Gold 999.9 bar" />
 				</div>
 
 				<div class="bullion-detail__form">

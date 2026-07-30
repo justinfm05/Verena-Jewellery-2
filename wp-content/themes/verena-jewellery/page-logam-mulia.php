@@ -55,11 +55,11 @@ while ( have_posts() ) : the_post();
 			<?php foreach ( $brands as $name => $logo_file ) : ?>
 				<?php if ( isset( $brand_urls[ $name ] ) ) : ?>
 					<a class="brand-badge" href="<?php echo esc_url( $brand_urls[ $name ] ); ?>">
-						<img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/' . $logo_file ); ?>" alt="<?php echo esc_attr( $name ); ?>" />
+						<img src="<?php echo esc_url( verena_asset_url( 'assets/img/' . $logo_file ) ); ?>" alt="<?php echo esc_attr( $name ); ?>" />
 					</a>
 				<?php else : ?>
 					<div class="brand-badge">
-						<img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/' . $logo_file ); ?>" alt="<?php echo esc_attr( $name ); ?>" />
+						<img src="<?php echo esc_url( verena_asset_url( 'assets/img/' . $logo_file ) ); ?>" alt="<?php echo esc_attr( $name ); ?>" />
 					</div>
 				<?php endif; ?>
 			<?php endforeach; ?>
