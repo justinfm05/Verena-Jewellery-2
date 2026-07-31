@@ -1,7 +1,8 @@
 <?php
 /**
  * Gold price reference ticker — thin bar above the header on every page.
- * Rates come from verena_gold_rates() (option-backed, staff-editable).
+ * Rates come from verena_gold_rates() (Antam 2026 / Emasku / UBS, 1 gram,
+ * from the shared bullion Google Sheet).
  *
  * @package Verena_Jewellery
  */
@@ -17,7 +18,7 @@ $wa_ticker = verena_wa_url( 'Halo Verena Jewellery, saya ingin tanya harga emas 
 		<span class="gold-ticker__label">Harga Emas Referensi &middot; <?php echo esc_html( $ticker['date'] ); ?></span>
 		<div class="gold-ticker__rates">
 			<?php foreach ( $ticker['rates'] as $rate ) : ?>
-				<span class="gold-ticker__rate"><?php echo esc_html( $rate['karat'] ); ?>K <strong>Rp <?php echo esc_html( $rate['price'] ); ?></strong>/gr</span>
+				<span class="gold-ticker__rate"><?php echo esc_html( $rate['label'] ); ?> <strong>Rp <?php echo esc_html( $rate['price'] ); ?></strong>/gr</span>
 			<?php endforeach; ?>
 		</div>
 		<p class="gold-ticker__note">harga final mengikuti kurs saat transaksi</p>

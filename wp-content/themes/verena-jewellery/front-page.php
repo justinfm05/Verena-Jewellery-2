@@ -138,22 +138,26 @@ $placeholder_products = array(
 			<span class="eyebrow">Dipercaya Sejak <?php echo esc_html( $shop['established'] ); ?></span>
 			<h2>Kata Pelanggan Kami</h2>
 		</div>
-		<div class="testi-grid">
-			<?php foreach ( verena_testimonials() as $t ) : ?>
-				<div class="testi-card">
-					<div class="testi-stars">
-						<?php for ( $i = 0; $i < 5; $i++ ) : ?>
-							<svg width="16" height="16" viewBox="0 0 24 24" fill="#C9A24B" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.7-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7-5.4-4.7 7.1-.7z"/></svg>
-						<?php endfor; ?>
+		<?php if ( shortcode_exists( 'reviews-feed' ) ) : ?>
+			<?php echo do_shortcode( '[reviews-feed feed=1]' ); ?>
+		<?php else : ?>
+			<div class="testi-grid">
+				<?php foreach ( verena_testimonials() as $t ) : ?>
+					<div class="testi-card">
+						<div class="testi-stars">
+							<?php for ( $i = 0; $i < 5; $i++ ) : ?>
+								<svg width="16" height="16" viewBox="0 0 24 24" fill="#C9A24B" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.7-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7-5.4-4.7 7.1-.7z"/></svg>
+							<?php endfor; ?>
+						</div>
+						<p class="testi-quote">&ldquo;<?php echo esc_html( $t['quote'] ); ?>&rdquo;</p>
+						<div>
+							<p class="testi-name"><?php echo esc_html( $t['name'] ); ?></p>
+							<p class="testi-loc"><?php echo esc_html( $t['location'] ); ?></p>
+						</div>
 					</div>
-					<p class="testi-quote">&ldquo;<?php echo esc_html( $t['quote'] ); ?>&rdquo;</p>
-					<div>
-						<p class="testi-name"><?php echo esc_html( $t['name'] ); ?></p>
-						<p class="testi-loc"><?php echo esc_html( $t['location'] ); ?></p>
-					</div>
-				</div>
-			<?php endforeach; ?>
-		</div>
+				<?php endforeach; ?>
+			</div>
+		<?php endif; ?>
 	</div>
 </section>
 
@@ -169,17 +173,21 @@ $placeholder_products = array(
 				<a class="ig-more" href="<?php echo esc_url( $shop['instagram'] ); ?>" target="_blank" rel="noopener">Lihat di Instagram &rarr;</a>
 			<?php endif; ?>
 		</div>
-		<div class="ig-grid">
-			<?php foreach ( verena_instagram_posts() as $post ) : ?>
-				<a class="ig-item" href="<?php echo esc_url( $shop['instagram'] ?: '#' ); ?>" target="_blank" rel="noopener">
-					<span class="ig-item__cap"><?php echo esc_html( $post['caption'] ); ?></span>
-					<span class="ig-item__likes">
-						<svg width="10" height="10" viewBox="0 0 24 24" fill="#F2E9CC" aria-hidden="true"><path d="M12 21s-7.5-4.6-10-9.1C.5 8.6 2.3 5 6 5c2 0 3.4 1 4 2.3C10.6 6 12 5 14 5c3.7 0 5.5 3.6 4 6.9C19.5 16.4 12 21 12 21z"/></svg>
-						<?php echo esc_html( $post['likes'] ); ?>
-					</span>
-				</a>
-			<?php endforeach; ?>
-		</div>
+		<?php if ( shortcode_exists( 'instagram-feed' ) ) : ?>
+			<?php echo do_shortcode( '[instagram-feed feed=1]' ); ?>
+		<?php else : ?>
+			<div class="ig-grid">
+				<?php foreach ( verena_instagram_posts() as $post ) : ?>
+					<a class="ig-item" href="<?php echo esc_url( $shop['instagram'] ?: '#' ); ?>" target="_blank" rel="noopener">
+						<span class="ig-item__cap"><?php echo esc_html( $post['caption'] ); ?></span>
+						<span class="ig-item__likes">
+							<svg width="10" height="10" viewBox="0 0 24 24" fill="#F2E9CC" aria-hidden="true"><path d="M12 21s-7.5-4.6-10-9.1C.5 8.6 2.3 5 6 5c2 0 3.4 1 4 2.3C10.6 6 12 5 14 5c3.7 0 5.5 3.6 4 6.9C19.5 16.4 12 21 12 21z"/></svg>
+							<?php echo esc_html( $post['likes'] ); ?>
+						</span>
+					</a>
+				<?php endforeach; ?>
+			</div>
+		<?php endif; ?>
 	</div>
 </section>
 

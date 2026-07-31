@@ -105,41 +105,37 @@ add_filter( 'robots_txt', 'verena_robots_txt', 10, 2 );
 /**
  * Gold price ticker data for the bar above the header on every page.
  *
- * Reads the LIVE per-karat sell rates entered by staff in wp-admin
- * (Verena Jewellery > Harga Emas Hari Ini), via the plugin's
- * verena_get_all_current_gold_rates(). Any karat without a saved rate — or
- * the whole thing if the plugin isn't active yet — falls back to the demo
+ * Reads the 1-gram sell price for Antam 2026, Emasku, and UBS from the same
+ * Google Sheet the Logam Mulia page uses (verena_get_bullion_sheet_data(), in
+ * the plugin — synced every 5 minutes). Any brand missing a 1g row — or the
+ * whole thing if the plugin isn't active yet — falls back to the demo
  * numbers below, so the ticker never renders empty. The reporting date shown
- * is the date those rates were last updated.
+ * is the sheet's last-synced time, in Jakarta time regardless of the site's
+ * own configured WordPress timezone setting (matches page-logam-mulia.php).
  *
- * @return array{date:string, rates:array<int,array{karat:int,price:string}>}
+ * @return array{date:string, rates:array<int,array{label:string,price:string}>}
  */
 function verena_gold_rates() {
-	// Karats shown in the ticker (display order) + fallback prices used only
-	// until real rates are entered in wp-admin.
+	// Brands shown in the ticker (display order) + fallback prices used only
+	// until the sheet has a 1-gram row for that brand.
 	$display = array(
-		24 => '1.850.000',
-		22 => '1.695.000',
-		18 => '1.410.000',
-		16 => '1.260.000',
+		'Antam 2026' => '1.850.000',
+		'Emasku'     => '1.800.000',
+		'UBS'        => '1.780.000',
 	);
 
-	$live      = function_exists( 'verena_get_all_current_gold_rates' ) ? verena_get_all_current_gold_rates() : array();
-	$rates     = array();
-	$latest_ts = 0;
+	$sheet = function_exists( 'verena_get_bullion_sheet_data' ) ? verena_get_bullion_sheet_data() : array();
+	$rates = array();
 
-	foreach ( $display as $karat => $fallback ) {
-		$label = $karat . 'K';
-		if ( isset( $live[ $label ] ) && (int) $live[ $label ]['sell_price_per_gram'] > 0 ) {
-			$price     = number_format( (int) $live[ $label ]['sell_price_per_gram'], 0, ',', '.' );
-			$latest_ts = max( $latest_ts, strtotime( $live[ $label ]['created_at'] ) );
-		} else {
-			$price = $fallback;
-		}
-		$rates[] = array( 'karat' => $karat, 'price' => $price );
+	foreach ( $display as $label => $fallback ) {
+		$one_gram_sell = verena_bullion_one_gram_sell( $sheet, $label );
+		$price         = null !== $one_gram_sell ? number_format( (int) $one_gram_sell, 0, ',', '.' ) : $fallback;
+		$rates[]       = array( 'label' => $label, 'price' => $price );
 	}
 
-	$date_label = $latest_ts ? wp_date( 'j F Y', $latest_ts ) : wp_date( 'j F Y' );
+	$date_label = ! empty( $sheet['fetched_at'] )
+		? wp_date( 'j F Y', $sheet['fetched_at'], new DateTimeZone( 'Asia/Jakarta' ) )
+		: wp_date( 'j F Y' );
 
 	return array(
 		'date'  => $date_label,
@@ -148,8 +144,33 @@ function verena_gold_rates() {
 }
 
 /**
- * Homepage testimonials. Placeholder copy from the design handoff — replace
- * with real reviews (or wire to an ACF repeater / custom table) before launch.
+ * Find the 1-gram sell price for one ticker brand within the parsed bullion
+ * sheet data (see verena_get_bullion_sheet_data()).
+ *
+ * @param array  $sheet {antam,emasku,ubs} arrays of gram-keyed rows.
+ * @param string $label One of the $display keys in verena_gold_rates(), e.g. "Antam 2026".
+ * @return int|float|null
+ */
+function verena_bullion_one_gram_sell( $sheet, $label ) {
+	$brand_key = ( 'Antam 2026' === $label ) ? 'antam' : strtolower( $label );
+	$rows      = $sheet[ $brand_key ] ?? array();
+
+	foreach ( $rows as $row ) {
+		if ( ! isset( $row['gram'] ) || 1.0 !== (float) $row['gram'] ) {
+			continue;
+		}
+		return 'Antam 2026' === $label ? ( $row['2026']['sell'] ?? null ) : ( $row['sell'] ?? null );
+	}
+
+	return null;
+}
+
+/**
+ * Homepage testimonials placeholders. front-page.php only uses these when no
+ * `[reviews-feed]` shortcode is registered — install and connect a Google
+ * Business Profile with a reviews feed plugin (e.g. Smash Balloon Reviews
+ * Feed) and the homepage switches to real Google reviews automatically, no
+ * code change here needed.
  *
  * @return array<int,array{quote:string,name:string,location:string}>
  */
@@ -174,8 +195,11 @@ function verena_testimonials() {
 }
 
 /**
- * Instagram feed placeholders for the homepage grid. Replace with a real feed
- * plugin or the Instagram Basic Display API before launch.
+ * Instagram feed placeholders for the homepage grid. front-page.php only uses
+ * these when no `[instagram-feed]` shortcode is registered — install and
+ * connect an account with an Instagram feed plugin (e.g. Smash Balloon) and
+ * the homepage switches to the real feed automatically, no code change here
+ * needed.
  *
  * @return array<int,array{caption:string,likes:string}>
  */
