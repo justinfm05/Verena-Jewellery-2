@@ -47,6 +47,50 @@ $placeholder_products = array(
 	</div>
 </section>
 
+<!-- Delivery partnership (Paxel) -->
+<section class="band band--forest">
+	<div class="band__inner" style="max-width:760px;">
+		<div class="band__head" style="margin-bottom:0;">
+			<div class="delivery-journey" aria-hidden="true">
+				<div class="delivery-journey__icon">
+					<svg width="34" height="34" viewBox="0 0 24 24" fill="none"><path d="M5 16L7 8h10l2 8H5z" fill="#D4AF37" stroke="#8A742F" stroke-width="1" stroke-linejoin="round"/><path d="M7.6 9.2h8.8l1 4H6.6l1-4z" fill="#F0D989" opacity="0.6"/></svg>
+				</div>
+				<span class="delivery-journey__line"></span>
+				<div class="delivery-journey__icon">
+					<svg width="34" height="34" viewBox="0 0 24 24" fill="none"><path d="M2 7h11v9H2z" stroke="#C9A24B" stroke-width="1.5" stroke-linejoin="round"/><path d="M13 10h4l4 3v3h-2" stroke="#C9A24B" stroke-width="1.5" stroke-linejoin="round"/><circle cx="6" cy="18" r="1.6" stroke="#C9A24B" stroke-width="1.5"/><circle cx="17" cy="18" r="1.6" stroke="#C9A24B" stroke-width="1.5"/><path d="M2 16h1M17 16h-4" stroke="#C9A24B" stroke-width="1.5"/></svg>
+				</div>
+				<span class="delivery-journey__line"></span>
+				<div class="delivery-journey__icon">
+					<svg width="34" height="34" viewBox="0 0 24 24" fill="none"><path d="M4 11l8-7 8 7" stroke="#C9A24B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9h12v-9" stroke="#C9A24B" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 19v-5h4v5" stroke="#C9A24B" stroke-width="1.5" stroke-linejoin="round"/></svg>
+				</div>
+			</div>
+			<h2>Diantar Langsung ke Rumah Anda</h2>
+			<p>Verena Jewellery bekerja sama dengan <strong>Paxel</strong> untuk mengirimkan perhiasan dan emas batangan Anda dengan aman, langsung ke rumah Anda di seluruh Indonesia.</p>
+			<div class="delivery-stats">
+				<div class="delivery-stat">
+					<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" stroke="#C9A24B" stroke-width="1.5" stroke-linejoin="round"/></svg>
+					<strong>Rp 100 Juta</strong>
+					<span>Asuransi Pengiriman</span>
+				</div>
+				<div class="delivery-stat">
+					<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z" stroke="#C9A24B" stroke-width="1.5" stroke-linejoin="round"/><circle cx="12" cy="9" r="2.3" stroke="#C9A24B" stroke-width="1.5"/></svg>
+					<strong>Real-time</strong>
+					<span>Lacak via GPS</span>
+				</div>
+				<div class="delivery-stat">
+					<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z" stroke="#C9A24B" stroke-width="1.5" stroke-linejoin="round"/><path d="M9 4v14M15 6v14" stroke="#C9A24B" stroke-width="1.5"/></svg>
+					<strong>Seluruh Indonesia</strong>
+					<span>Jangkauan Pengiriman</span>
+				</div>
+			</div>
+			<a class="btn btn-gold" style="margin-top:8px;" href="<?php echo esc_url( verena_wa_url( 'Halo Verena Jewellery, saya ingin tanya soal pengiriman ke rumah via Paxel.' ) ); ?>" target="_blank" rel="noopener">
+				<?php echo verena_wa_icon( 18 ); // phpcs:ignore -- trusted inline SVG. ?>
+				Tanya Soal Pengiriman
+			</a>
+		</div>
+	</div>
+</section>
+
 <!-- Featured collections -->
 <section id="collections" class="band band--champagne">
 	<div class="band__inner">

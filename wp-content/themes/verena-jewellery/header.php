@@ -44,15 +44,16 @@ $layanan = array_filter(
 <?php if ( has_custom_logo() ) : ?>
 			<?php the_custom_logo(); ?>
 		<?php else : ?>
-			<a class="site-logo" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php echo esc_attr( $shop['name'] ); ?> — Beranda">
+			<span class="site-logo">
 				<img src="<?php echo esc_url( $logo_url ); ?>" alt="<?php echo esc_attr( $shop['name'] ); ?> logo" />
-			</a>
+			</span>
 		<?php endif; ?>
 
 		<nav class="primary-nav" aria-label="Primary">
 			<?php if ( verena_page_is_published( 'collection' ) ) : ?>
 				<a class="navlink" href="<?php echo esc_url( verena_page_url( 'collection' ) ); ?>">Koleksi</a>
 			<?php endif; ?>
+			<a class="navlink" href="<?php echo esc_url( home_url( '/' ) ); ?>">Home</a>
 			<?php if ( verena_page_is_published( 'bullion' ) ) : ?>
 				<a class="navlink" href="<?php echo esc_url( verena_page_url( 'bullion' ) ); ?>">Logam Mulia</a>
 			<?php endif; ?>
@@ -98,6 +99,7 @@ $layanan = array_filter(
 		<?php if ( verena_page_is_published( 'collection' ) ) : ?>
 			<a href="<?php echo esc_url( verena_page_url( 'collection' ) ); ?>">Koleksi</a>
 		<?php endif; ?>
+		<a href="<?php echo esc_url( home_url( '/' ) ); ?>">Home</a>
 		<?php if ( verena_page_is_published( 'bullion' ) ) : ?>
 			<a href="<?php echo esc_url( verena_page_url( 'bullion' ) ); ?>">Logam Mulia</a>
 		<?php endif; ?>
