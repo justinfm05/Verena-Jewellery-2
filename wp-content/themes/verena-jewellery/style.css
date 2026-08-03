@@ -229,36 +229,6 @@ p { margin: 0 0 var(--space-2); }
 }
 .navlink:hover::after, .navlink:focus-visible::after { transform: scaleX(1); }
 .navlink svg { transition: transform 0.2s ease; }
-.has-dropdown { position: relative; }
-.has-dropdown.is-open .navlink svg { transform: rotate(180deg); }
-
-.nav-dropdown {
-	position: absolute;
-	top: calc(100% + 16px);
-	left: 50%;
-	transform: translateX(-50%);
-	background: var(--forest);
-	border: 1px solid rgba(242, 233, 204, 0.15);
-	border-radius: 4px;
-	padding: 8px;
-	display: none;
-	flex-direction: column;
-	min-width: 220px;
-	box-shadow: var(--shadow-drop);
-	z-index: 20;
-}
-.has-dropdown.is-open .nav-dropdown { display: flex; }
-.nav-dropdown a {
-	color: var(--champagne);
-	font-family: var(--font-body);
-	font-size: 13.5px;
-	font-weight: 500;
-	padding: 10px 12px;
-	border-radius: 3px;
-	white-space: nowrap;
-	transition: background 0.15s ease;
-}
-.nav-dropdown a:hover { background: rgba(242, 233, 204, 0.08); }
 
 .header-actions { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
 .header-wa {
@@ -426,6 +396,30 @@ p { margin: 0 0 var(--space-2); }
 .band__head p { font-size: 15px; color: var(--ink-muted); max-width: 520px; margin: 0; }
 .band--forest .band__head .eyebrow { color: var(--gold); }
 .band--forest .band__head h2 { color: var(--champagne); }
+.band--forest .band__head p { color: var(--champagne-dim); }
+.delivery-journey { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
+.delivery-journey__icon {
+	width: 72px; height: 72px; border-radius: 50%;
+	border: 1px solid rgba(201, 162, 75, 0.4);
+	display: flex; align-items: center; justify-content: center;
+}
+.delivery-journey__line { width: 36px; height: 1px; background: rgba(201, 162, 75, 0.4); }
+.delivery-stats {
+	display: flex; flex-wrap: wrap; justify-content: center;
+	gap: 16px;
+	margin: 32px 0 4px;
+}
+.delivery-stat {
+	display: flex; flex-direction: column; align-items: center;
+	min-width: 160px;
+	padding: 26px 20px;
+	background: rgba(201, 162, 75, 0.09);
+	border: 1px solid rgba(201, 162, 75, 0.35);
+	border-radius: 12px;
+}
+.delivery-stat svg { margin-bottom: 12px; }
+.delivery-stat strong { font-family: var(--font-body); font-weight: 700; font-size: 1.4rem; line-height: 1.2; color: var(--gold-bright); text-align: center; }
+.delivery-stat span { font-family: var(--font-body); font-size: 12.5px; font-weight: 600; letter-spacing: 0.03em; color: var(--champagne); margin-top: 10px; }
 
 /* ------------------------------------------------------------------ */
 /* Product grid + card                                                 */
@@ -601,7 +595,43 @@ p { margin: 0 0 var(--space-2); }
 }
 .price-table tbody tr:nth-child(even) { background: var(--bg-alt); }
 .price-table tbody tr:hover { background: rgba(201, 162, 75, 0.14); }
-.price-table td:nth-child(3), .price-table td:nth-child(4) { font-weight: 700; font-family: var(--font-display); font-size: 1.05rem; color: var(--forest); }
+
+/* Logam Mulia brand strip — three equal-width badges spanning the full container, so the middle one sits at page-center. */
+.brand-strip { display: grid; grid-template-columns: 1fr; gap: 16px; margin: var(--space-2) 0 var(--space-3); }
+@media (min-width: 720px) { .brand-strip { grid-template-columns: repeat(3, 1fr); gap: 24px; } }
+.brand-badge {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	padding: 0.5rem 2rem;
+	background: #FFFFFF;
+	border: 1px solid var(--line-light);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-sm);
+	cursor: pointer;
+	transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+.brand-badge:hover { box-shadow: var(--shadow-md); transform: translateY(-3px); border-color: var(--gold); }
+.brand-badge img { height: 88px; width: auto; max-width: 100%; object-fit: contain; display: block; }
+/* UBS/Emasku read visually "heavier" than Antam at the same pixel height
+   (denser marks, less internal whitespace), so they're sized down slightly
+   to match Antam's visual weight rather than its exact pixel height. */
+.brand-badge img[src*="ubs-logo"], .brand-badge img[src*="emasku-logo"] { height: 75px; }
+
+/* Brand detail pages (Antam/UBS/Emasku) show this same badge as a static
+   logo, not a link — no hover/pointer affordance, sized to match the photo's
+   width below it (both scaled to 2/3 of their original full-width size). */
+.bullion-detail__media .brand-badge { cursor: default; width: 66.67%; height: 80px; }
+.bullion-detail__media .brand-badge:hover { box-shadow: var(--shadow-sm); transform: none; border-color: var(--line-light); }
+.bullion-detail__media .brand-badge img { height: 73px; }
+.bullion-detail__media .brand-badge img[src*="ubs-logo"], .bullion-detail__media .brand-badge img[src*="emasku-logo"] { height: 63px; }
+
+/* Bullion brand detail page (e.g. Antam) — photo + gram/tahun/harga picker. */
+.bullion-detail { display: grid; grid-template-columns: 1fr; gap: var(--space-4); align-items: start; }
+@media (min-width: 720px) { .bullion-detail { grid-template-columns: 1fr 1fr; } }
+.bullion-detail__photo { width: 66.67%; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); display: block; }
+.bullion-detail__price { font-size: 1.5rem; font-weight: 700; color: var(--forest); margin: 0; }
 
 /* ------------------------------------------------------------------ */
 /* Forms (calculator / estimator / custom design)                     */
@@ -658,11 +688,17 @@ p { margin: 0 0 var(--space-2); }
 .chip:hover { border-color: var(--gold); }
 .chip.is-active { background: var(--gold); color: var(--forest); border-color: var(--gold); }
 .form-note {
-	display: flex; align-items: center; gap: 10px;
-	padding: 12px 14px; border: 1px dashed var(--line-light-strong);
-	border-radius: 3px; background: #FBF7EA;
-	font-family: var(--font-body); font-size: 13px; color: #7A6E45;
+	display: flex; align-items: center; gap: 8px;
+	padding: 2px 0 2px 12px; border-left: 2px solid var(--gold);
+	font-family: var(--font-body); font-size: 13px; font-style: italic; color: #7A6E45;
 }
+.form-note svg { flex-shrink: 0; }
+.form-note__label { text-decoration: underline; font-style: normal; }
+.required-mark { color: var(--danger); }
+.field-optional { font-weight: 400; font-size: 12px; color: #9a9078; }
+.btn.is-disabled { opacity: 0.6; cursor: not-allowed; }
+.form-error { color: var(--danger); font-size: 13px; margin: -10px 0 0; }
+.form-hint { font-size: 13px; color: #9a9078; margin: -10px 0 0; }
 .honeypot-field { position: absolute; left: -9999px; opacity: 0; height: 0; overflow: hidden; }
 [x-cloak] { display: none !important; }
 
@@ -854,5 +890,6 @@ p { margin: 0 0 var(--space-2); }
 .stack { display: flex; flex-direction: column; gap: var(--space-2); }
 .row { display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: center; }
 .mt-4 { margin-top: var(--space-4); }
+.mb-4 { margin-bottom: var(--space-4); }
 .mb-0 { margin-bottom: 0; }
 .empty-state { text-align: center; padding: var(--space-5) var(--space-2); color: var(--text-muted); }

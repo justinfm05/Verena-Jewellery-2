@@ -13,7 +13,7 @@ get_header();
 
 $shop      = verena_shop_info();
 $wa_number = preg_replace( '/\D+/', '', (string) $shop['whatsapp'] );
-$occasions = array( 'Cincin Kawin', 'Lamaran', 'Ulang Tahun', 'Hadiah Keluarga' );
+$occasions = array( 'Cincin Kawin', 'Lamaran', 'Ulang Tahun', 'Hadiah Keluarga', 'Koleksi Pribadi', 'Lainnya' );
 
 while ( have_posts() ) :
 	the_post();
@@ -27,7 +27,7 @@ while ( have_posts() ) :
 endwhile;
 ?>
 
-<section class="band band--champagne" x-data="verenaCustomForm(<?php echo wp_json_encode( $wa_number ); ?>)">
+<section class="band band--champagne" x-data="verenaCustomForm(<?php echo esc_attr( wp_json_encode( $wa_number ) ); ?>)">
 	<div class="band__inner" style="max-width:720px;">
 		<div class="band__head">
 			<span class="eyebrow">Custom Design</span>
@@ -37,7 +37,7 @@ endwhile;
 
 		<div class="form-card">
 			<div>
-				<label class="field-label">Untuk acara apa? *</label>
+				<label class="field-label">Untuk acara apa? <span class="required-mark">*</span></label>
 				<div class="chip-row">
 					<?php foreach ( $occasions as $occ ) : ?>
 						<button type="button" class="chip" :class="{ 'is-active': occasion === <?php echo esc_attr( wp_json_encode( $occ ) ); ?> }" @click="occasion = <?php echo esc_attr( wp_json_encode( $occ ) ); ?>"><?php echo esc_html( $occ ); ?></button>
@@ -46,7 +46,7 @@ endwhile;
 			</div>
 
 			<div>
-				<label class="field-label" for="vj-budget">Kisaran Budget</label>
+				<label class="field-label" for="vj-budget">Kisaran Budget <span class="required-mark">*</span></label>
 				<select id="vj-budget" class="vj-field" x-model="budget">
 					<option value="">Pilih kisaran budget</option>
 					<option value="&lt; Rp 5 juta">&lt; Rp 5 juta</option>
@@ -57,24 +57,26 @@ endwhile;
 			</div>
 
 			<div>
-				<label class="field-label" for="vj-name">Nama Anda</label>
+				<label class="field-label" for="vj-name">Nama Anda <span class="required-mark">*</span></label>
 				<input id="vj-name" type="text" class="vj-field" placeholder="cth. Dewi Anggraini" x-model="name" />
 			</div>
 
 			<div>
-				<label class="field-label" for="vj-desc">Deskripsi Perhiasan yang Diinginkan</label>
+				<label class="field-label" for="vj-desc">Deskripsi Perhiasan yang Diinginkan <span class="field-optional">(opsional)</span></label>
 				<textarea id="vj-desc" class="vj-field" rows="4" placeholder="cth. Cincin kawin emas 18K dengan ukiran nama, model minimalis..." x-model="desc" style="resize:vertical;"></textarea>
 			</div>
 
 			<div class="form-note">
-				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 16l4.6-4.6a2 2 0 012.8 0L16 16M14 14l1.6-1.6a2 2 0 012.8 0L20 14M4 8h16M4 4h16M4 20h16" stroke="#A08B4A" stroke-width="1.5" stroke-linecap="round"/></svg>
-				<span>Punya foto referensi? Lampirkan langsung saat chat WhatsApp</span>
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 16l4.6-4.6a2 2 0 012.8 0L16 16M14 14l1.6-1.6a2 2 0 012.8 0L20 14M4 8h16M4 4h16M4 20h16" stroke="#A08B4A" stroke-width="1.5" stroke-linecap="round"/></svg>
+				<span><span class="form-note__label">Note:</span> Punya foto referensi? Lampirkan langsung saat chat WhatsApp</span>
 			</div>
 
-			<a class="btn btn-gold btn-block" :href="waLink" target="_blank" rel="noopener">
+			<a class="btn btn-gold btn-block" :class="{ 'is-disabled': ! isValid }" :href="isValid ? waLink : '#'" @click="if ( ! isValid ) { $event.preventDefault(); touched = true; }" target="_blank" rel="noopener">
 				<?php echo verena_wa_icon( 18 ); // phpcs:ignore -- trusted inline SVG. ?>
 				Kirim ke WhatsApp
 			</a>
+			<p class="form-hint"><span class="required-mark">*</span> Wajib diisi</p>
+			<p class="form-error" x-cloak x-show="touched && ! isValid">Lengkapi dulu field bertanda <span class="required-mark">*</span> di atas.</p>
 		</div>
 	</div>
 </section>
@@ -87,6 +89,10 @@ endwhile;
 			budget: '',
 			name: '',
 			desc: '',
+			touched: false,
+			get isValid() {
+				return !! ( this.occasion && this.budget && this.name.trim() );
+			},
 			get waLink() {
 				let msg = 'Halo Verena Jewellery, saya ingin konsultasi custom design.\n';
 				if ( this.occasion ) msg += 'Acara: ' + this.occasion + '\n';
