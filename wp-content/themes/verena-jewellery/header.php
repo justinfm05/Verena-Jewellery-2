@@ -15,15 +15,6 @@ $wa_nav   = verena_wa_url( 'Halo Verena Jewellery, saya ingin bertanya tentang p
 // still Draft (or hasn't been created yet) simply doesn't appear in the nav,
 // rather than linking out to a dead/404 page. Flip a page to Published in
 // wp-admin whenever it's ready and it'll show up here automatically.
-$layanan = array_filter(
-	array(
-		array( 'key' => 'repairs',    'label' => 'Servis & Perbaikan', 'url' => verena_page_url( 'repairs' ) ),
-		array( 'key' => 'calculator', 'label' => 'Kalkulator Emas',    'url' => verena_page_url( 'calculator' ) ),
-	),
-	function ( $item ) {
-		return verena_page_is_published( $item['key'] );
-	}
-);
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
@@ -66,18 +57,8 @@ $layanan = array_filter(
 			<?php if ( verena_page_is_published( 'buyback' ) ) : ?>
 				<a class="navlink" href="<?php echo esc_url( verena_page_url( 'buyback' ) ); ?>">Jual Emas</a>
 			<?php endif; ?>
-			<?php if ( ! empty( $layanan ) ) : ?>
-				<div class="has-dropdown" data-dropdown>
-					<button class="navlink" type="button" aria-haspopup="true" aria-expanded="false" data-dropdown-toggle>
-						Layanan
-						<svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-					</button>
-					<div class="nav-dropdown" role="menu">
-						<?php foreach ( $layanan as $item ) : ?>
-							<a href="<?php echo esc_url( $item['url'] ); ?>" role="menuitem"><?php echo esc_html( $item['label'] ); ?></a>
-						<?php endforeach; ?>
-					</div>
-				</div>
+			<?php if ( verena_page_is_published( 'repairs' ) ) : ?>
+				<a class="navlink" href="<?php echo esc_url( verena_page_url( 'repairs' ) ); ?>">Servis &amp; Perbaikan</a>
 			<?php endif; ?>
 			<?php if ( verena_page_is_published( 'about' ) ) : ?>
 				<a class="navlink" href="<?php echo esc_url( verena_page_url( 'about' ) ); ?>">Tentang Kami</a>
@@ -112,11 +93,8 @@ $layanan = array_filter(
 		<?php if ( verena_page_is_published( 'buyback' ) ) : ?>
 			<a href="<?php echo esc_url( verena_page_url( 'buyback' ) ); ?>">Jual Emas</a>
 		<?php endif; ?>
-		<?php if ( ! empty( $layanan ) ) : ?>
-			<p class="mobile-nav__label">Layanan</p>
-			<?php foreach ( $layanan as $item ) : ?>
-				<a href="<?php echo esc_url( $item['url'] ); ?>"><?php echo esc_html( $item['label'] ); ?></a>
-			<?php endforeach; ?>
+		<?php if ( verena_page_is_published( 'repairs' ) ) : ?>
+			<a href="<?php echo esc_url( verena_page_url( 'repairs' ) ); ?>">Servis &amp; Perbaikan</a>
 		<?php endif; ?>
 		<?php if ( verena_page_is_published( 'about' ) || verena_page_is_published( 'contact' ) ) : ?>
 			<p class="mobile-nav__label">Lainnya</p>
