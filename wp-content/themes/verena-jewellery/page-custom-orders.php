@@ -27,7 +27,7 @@ while ( have_posts() ) :
 endwhile;
 ?>
 
-<section class="band band--champagne" x-data="verenaCustomForm(<?php echo esc_attr( wp_json_encode( $wa_number ) ); ?>)">
+<section class="band" x-data="verenaCustomForm(<?php echo esc_attr( wp_json_encode( $wa_number ) ); ?>)">
 	<div class="band__inner" style="max-width:720px;">
 		<div class="band__head">
 			<span class="eyebrow">Custom Design</span>
@@ -66,7 +66,7 @@ endwhile;
 				<textarea id="vj-desc" class="vj-field" rows="4" placeholder="cth. Cincin kawin emas 18K dengan ukiran nama, model minimalis..." x-model="desc" style="resize:vertical;"></textarea>
 			</div>
 
-			<div class="form-note">
+			<div class="form-note" style="border-left:none; padding-left:0;">
 				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 16l4.6-4.6a2 2 0 012.8 0L16 16M14 14l1.6-1.6a2 2 0 012.8 0L20 14M4 8h16M4 4h16M4 20h16" stroke="#A08B4A" stroke-width="1.5" stroke-linecap="round"/></svg>
 				<span><span class="form-note__label">Note:</span> Punya foto referensi? Lampirkan langsung saat chat WhatsApp</span>
 			</div>
@@ -75,6 +75,12 @@ endwhile;
 				<?php echo verena_wa_icon( 18 ); // phpcs:ignore -- trusted inline SVG. ?>
 				Kirim ke WhatsApp
 			</a>
+
+			<p class="form-note" style="margin-top:8px;">
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 7h11v9H2z" stroke="#A08B4A" stroke-width="1.5" stroke-linejoin="round"/><path d="M13 10h4l4 3v3h-2" stroke="#A08B4A" stroke-width="1.5" stroke-linejoin="round"/><circle cx="6" cy="18" r="1.6" stroke="#A08B4A" stroke-width="1.5"/><circle cx="17" cy="18" r="1.6" stroke="#A08B4A" stroke-width="1.5"/><path d="M2 16h1M17 16h-4" stroke="#A08B4A" stroke-width="1.5"/></svg>
+				<span>Diantar aman ke rumah Anda via Paxel</span>
+			</p>
+
 			<p class="form-hint"><span class="required-mark">*</span> Wajib diisi</p>
 			<p class="form-error" x-cloak x-show="touched && ! isValid">Lengkapi dulu field bertanda <span class="required-mark">*</span> di atas.</p>
 		</div>

@@ -1,6 +1,7 @@
 <?php
 /**
- * Homepage: hero, featured collections, testimonials, Instagram feed.
+ * Homepage: hero, Paxel delivery highlight, custom showcase, testimonials,
+ * Instagram feed.
  *
  * @package Verena_Jewellery
  */
@@ -13,16 +14,14 @@ $shop        = verena_shop_info();
 $hero_img    = get_template_directory_uri() . '/assets/img/hero-placeholder.png';
 $wa_hero     = verena_wa_url( 'Halo Verena Jewellery, saya ingin bertanya tentang koleksi perhiasan.' );
 
-$featured       = verena_get_fashion_query();
-$featured_items = array_slice( $featured->posts, 0, 4 );
-
-/* Placeholder collection cards from the design handoff, used only when no
-   real products have been published yet. */
-$placeholder_products = array(
-	array( 'name' => 'Cincin Kawin Klasik',        'category' => 'Cincin Kawin',  'karat' => '18K', 'weight' => '3.2 gram' ),
-	array( 'name' => 'Kalung Rantai Rose',         'category' => 'Kalung',        'karat' => '22K', 'weight' => '5.0 gram' ),
-	array( 'name' => 'Gelang Bola Emas',           'category' => 'Gelang',        'karat' => '18K', 'weight' => '4.1 gram' ),
-	array( 'name' => 'Cincin Custom Batu Permata', 'category' => 'Custom Design', 'karat' => '18K', 'weight' => '2.8 gram' ),
+/* Past custom-order process clips. Drop matching video files into
+   assets/video/ and each slot switches from the placeholder to a real
+   <video> automatically — no code change needed. */
+$showcase_videos = array(
+	array( 'file' => 'custom-showcase-1.mp4' ),
+	array( 'file' => 'custom-showcase-2.mp4' ),
+	array( 'file' => 'custom-showcase-3.mp4' ),
+	array( 'file' => 'custom-showcase-4.mp4' ),
 );
 ?>
 
@@ -33,9 +32,9 @@ $placeholder_products = array(
 	<div class="hero__scrim-bottom"></div>
 	<div class="hero__inner">
 		<div class="hero__content">
-			<span class="eyebrow">Sejak <?php echo esc_html( $shop['established'] ); ?> &middot; Jakarta Selatan</span>
+			<span class="eyebrow">Verena Jewellery &nbsp;&middot;&nbsp; Jakarta Selatan</span>
 			<h1>Perhiasan Emas untuk Momen yang Abadi</h1>
-			<p class="hero__body">Cincin kawin, kalung, dan gelang emas buatan tangan — serta layanan desain custom untuk perhiasan yang dibuat khusus untuk kisah Anda.</p>
+			<p class="hero__body">Emas dan perhiasan pilihan, dipercaya keluarga Jakarta sejak 1999 — kini hanya sejauh satu pesan dari rumah Anda.</p>
 			<div class="hero__actions">
 				<a class="btn btn-gold" href="<?php echo esc_url( $wa_hero ); ?>" target="_blank" rel="noopener">
 					<?php echo verena_wa_icon( 18 ); // phpcs:ignore -- trusted inline SVG. ?>
@@ -53,7 +52,7 @@ $placeholder_products = array(
 		<div class="band__head" style="margin-bottom:0;">
 			<div class="delivery-journey" aria-hidden="true">
 				<div class="delivery-journey__icon">
-					<svg width="34" height="34" viewBox="0 0 24 24" fill="none"><path d="M5 16L7 8h10l2 8H5z" fill="#D4AF37" stroke="#8A742F" stroke-width="1" stroke-linejoin="round"/><path d="M7.6 9.2h8.8l1 4H6.6l1-4z" fill="#F0D989" opacity="0.6"/></svg>
+					<svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 4H15L20 9L12 20L4 9Z" stroke="#C9A24B" stroke-width="1.5" stroke-linejoin="round"/><path d="M4 9H20M12 20L9 4M12 20L15 4" stroke="#C9A24B" stroke-width="1.2" stroke-linejoin="round"/></svg>
 				</div>
 				<span class="delivery-journey__line"></span>
 				<div class="delivery-journey__icon">
@@ -65,11 +64,11 @@ $placeholder_products = array(
 				</div>
 			</div>
 			<h2>Diantar Langsung ke Rumah Anda</h2>
-			<p>Verena Jewellery bekerja sama dengan <strong>Paxel</strong> untuk mengirimkan perhiasan dan emas batangan Anda dengan aman, langsung ke rumah Anda di seluruh Indonesia.</p>
+			<p>Verena Jewellery bekerja sama dengan <strong>Paxel</strong> untuk mengirimkan perhiasan dan emas batangan Anda dengan aman, langsung ke rumah Anda.</p>
 			<div class="delivery-stats">
 				<div class="delivery-stat">
 					<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" stroke="#C9A24B" stroke-width="1.5" stroke-linejoin="round"/></svg>
-					<strong>Rp 100 Juta</strong>
+					<strong>Up to 100 Juta</strong>
 					<span>Asuransi Pengiriman</span>
 				</div>
 				<div class="delivery-stat">
@@ -78,9 +77,9 @@ $placeholder_products = array(
 					<span>Lacak via GPS</span>
 				</div>
 				<div class="delivery-stat">
-					<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z" stroke="#C9A24B" stroke-width="1.5" stroke-linejoin="round"/><path d="M9 4v14M15 6v14" stroke="#C9A24B" stroke-width="1.5"/></svg>
-					<strong>Seluruh Indonesia</strong>
-					<span>Jangkauan Pengiriman</span>
+					<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.5" stroke="#C9A24B" stroke-width="1.5"/><path d="M12 7.5V12l3 2" stroke="#C9A24B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+					<strong>1&ndash;24 Jam</strong>
+					<span>Sampai di Rumah</span>
 				</div>
 			</div>
 			<a class="btn btn-gold" style="margin-top:8px;" href="<?php echo esc_url( verena_wa_url( 'Halo Verena Jewellery, saya ingin tanya soal pengiriman ke rumah via Paxel.' ) ); ?>" target="_blank" rel="noopener">
@@ -91,42 +90,31 @@ $placeholder_products = array(
 	</div>
 </section>
 
-<!-- Featured collections -->
-<section id="collections" class="band band--champagne">
+<!-- Custom Showcase -->
+<section class="band band--champagne">
 	<div class="band__inner">
 		<div class="band__head">
-			<span class="eyebrow">Koleksi Kami</span>
-			<h2>Perhiasan Emas Pilihan</h2>
-			<p>Setiap koleksi tersedia dalam berbagai kadar emas. Harga menyesuaikan kurs emas harian — hubungi kami untuk penawaran terbaru.</p>
+			<h2>Custom Showcase</h2>
+			<p>Laser Engraving &nbsp;&nbsp;&middot;&nbsp;&nbsp; Certified Designer &nbsp;&nbsp;&middot;&nbsp;&nbsp; High Quality</p>
 		</div>
 
-		<div class="product-grid">
-			<?php if ( ! empty( $featured_items ) ) : ?>
-				<?php foreach ( $featured_items as $post ) : setup_postdata( $post ); ?>
-					<?php get_template_part( 'template-parts/product-card', null, array( 'post_id' => $post->ID ) ); ?>
-				<?php endforeach; wp_reset_postdata(); ?>
-			<?php else : ?>
-				<?php foreach ( $placeholder_products as $p ) : ?>
-					<?php
-					$wa_card = verena_wa_url( 'Halo, saya ingin tanya tentang ' . $p['name'] . '.' );
-					?>
-					<a class="card" href="<?php echo esc_url( $wa_card ); ?>" target="_blank" rel="noopener">
-						<div class="card__image">
-							<span class="card__image-note">product shot: <?php echo esc_html( $p['name'] ); ?></span>
-						</div>
-						<div class="card__body">
-							<span class="card__cat"><?php echo esc_html( $p['category'] ); ?></span>
-							<h3 class="card__title"><?php echo esc_html( $p['name'] ); ?></h3>
-							<p class="card__meta"><?php echo esc_html( $p['karat'] ); ?> &middot; <?php echo esc_html( $p['weight'] ); ?></p>
-							<span class="card__cta"><?php echo verena_wa_icon( 15 ); // phpcs:ignore ?> Inquire via WhatsApp</span>
-						</div>
-					</a>
-				<?php endforeach; ?>
-			<?php endif; ?>
+		<div class="showcase-grid">
+			<?php foreach ( $showcase_videos as $item ) : ?>
+				<?php $video_path = get_template_directory() . '/assets/video/' . $item['file']; ?>
+				<div class="showcase-video">
+					<?php if ( file_exists( $video_path ) ) : ?>
+						<video src="<?php echo esc_url( verena_asset_url( 'assets/video/' . $item['file'] ) ); ?>" controls playsinline muted></video>
+					<?php else : ?>
+						<span class="showcase-video__placeholder">Placeholder Video of Custom Product</span>
+					<?php endif; ?>
+				</div>
+			<?php endforeach; ?>
 		</div>
 
-		<div class="text-center mt-4">
-			<a class="btn btn-gold" href="<?php echo esc_url( verena_page_url( 'collection' ) ); ?>">Lihat Semua Koleksi</a>
+		<p class="text-center showcase-cta-line">Konsultasi Sekarang dan &#10024; Wujudkan Impianmu &#10024;</p>
+
+		<div class="text-center">
+			<a class="btn btn-gold" href="<?php echo esc_url( verena_page_url( 'custom' ) ); ?>">Konsultasi Custom Design</a>
 		</div>
 	</div>
 </section>

@@ -58,6 +58,16 @@ while ( have_posts() ) : the_post();
 					</div>
 
 					<div class="form-field">
+						<label for="emasku-qty">Jumlah</label>
+						<select id="emasku-qty" x-model="quantity">
+							<option value="">Pilih jumlah</option>
+							<template x-for="q in quantities" :key="q">
+								<option :value="q" x-text="q"></option>
+							</template>
+						</select>
+					</div>
+
+					<div class="form-field">
 						<span class="field-label">Harga</span>
 						<p class="bullion-detail__price" x-text="formattedPrice"></p>
 					</div>
@@ -84,6 +94,8 @@ while ( have_posts() ) : the_post();
 						rows: config.rows,
 						waNumber: config.waNumber,
 						gram: '',
+						quantity: '',
+						quantities: [ '1', '2', '3', '4', '5+' ],
 						get grams() {
 							return this.rows.map( ( r ) => r.gram );
 						},
@@ -97,10 +109,10 @@ while ( have_posts() ) : the_post();
 							return this.row ? this.row.sell : null;
 						},
 						get formattedPrice() {
-							return this.price ? 'Rp' + this.price.toLocaleString( 'id-ID' ) : '—';
+							return this.price ? 'Rp' + this.price.toLocaleString( 'id-ID' ) + '/pcs' : '—';
 						},
 						get canInquire() {
-							return this.gram !== '' && this.price !== null;
+							return this.gram !== '' && this.quantity !== '' && this.price !== null;
 						},
 						get waLink() {
 							if ( ! this.canInquire ) {
@@ -109,6 +121,7 @@ while ( have_posts() ) : the_post();
 							const lines = [
 								'Halo Verena Jewellery, saya ingin bertanya tentang Logam Mulia Emasku.',
 								'Gram: ' + this.formatGram( this.gram ),
+								'Jumlah: ' + this.quantity,
 								'Harga: ' + this.formattedPrice,
 							];
 							return 'https://wa.me/' + this.waNumber + '?text=' + encodeURIComponent( lines.join( '\n' ) );
