@@ -11,8 +11,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 get_header();
 
 $shop        = verena_shop_info();
-$hero_img    = get_template_directory_uri() . '/assets/img/hero-placeholder.png';
 $wa_hero     = verena_wa_url( 'Halo Verena Jewellery, saya ingin bertanya tentang koleksi perhiasan.' );
+
+/* Hero split-panel images. Drop the real files in with these exact names
+   and each side switches over automatically — no code change needed. */
+$hero_texture_file  = 'hero-texture.jpg';
+$hero_necklace_file = 'hero-necklace.jpg';
+$hero_texture_path  = get_template_directory() . '/assets/img/' . $hero_texture_file;
+$hero_necklace_path = get_template_directory() . '/assets/img/' . $hero_necklace_file;
+$hero_placeholder   = get_template_directory_uri() . '/assets/img/hero-placeholder.png';
 
 /* Past custom-order process clips. Drop matching video files into
    assets/video/ and each slot switches from the placeholder to a real
@@ -27,22 +34,35 @@ $showcase_videos = array(
 
 <!-- Hero -->
 <section class="hero">
-	<img class="hero__img" src="<?php echo esc_url( $hero_img ); ?>" alt="Cincin kawin emas kuning 17K, sepasang, di atas kain beludru" />
-	<div class="hero__scrim"></div>
-	<div class="hero__scrim-bottom"></div>
-	<div class="hero__inner">
-		<div class="hero__content">
-			<span class="eyebrow">Verena Jewellery &nbsp;&middot;&nbsp; Jakarta Selatan</span>
-			<h1>Perhiasan Emas untuk Momen yang Abadi</h1>
-			<p class="hero__body">Emas dan perhiasan pilihan, dipercaya keluarga Jakarta sejak 1999 — kini hanya sejauh satu pesan dari rumah Anda.</p>
-			<div class="hero__actions">
-				<a class="btn btn-gold" href="<?php echo esc_url( $wa_hero ); ?>" target="_blank" rel="noopener">
-					<?php echo verena_wa_icon( 18 ); // phpcs:ignore -- trusted inline SVG. ?>
-					Chat via WhatsApp
-				</a>
-				<a class="btn btn-outline-light" href="<?php echo esc_url( verena_page_url( 'bullion' ) ); ?>">Lihat Harga Emas Hari Ini</a>
+	<div class="hero__panel hero__panel--text">
+		<img
+			class="hero__panel-bg"
+			src="<?php echo esc_url( file_exists( $hero_texture_path ) ? verena_asset_url( 'assets/img/' . $hero_texture_file ) : $hero_placeholder ); ?>"
+			alt=""
+			aria-hidden="true"
+		/>
+		<div class="hero__panel-overlay"></div>
+		<div class="hero__inner">
+			<div class="hero__content">
+				<span class="eyebrow">Verena Jewellery &nbsp;&middot;&nbsp; Jakarta Selatan</span>
+				<h1>Perhiasan Emas untuk Momen yang Abadi</h1>
+				<p class="hero__body">Emas dan perhiasan pilihan, dipercaya keluarga Jakarta sejak 1999 — kini hanya sejauh satu pesan dari rumah Anda.</p>
+				<div class="hero__actions">
+					<a class="btn btn-gold" href="<?php echo esc_url( $wa_hero ); ?>" target="_blank" rel="noopener">
+						<?php echo verena_wa_icon( 18 ); // phpcs:ignore -- trusted inline SVG. ?>
+						Chat via WhatsApp
+					</a>
+					<a class="btn btn-outline-light" href="<?php echo esc_url( verena_page_url( 'bullion' ) ); ?>">Lihat Harga Emas Hari Ini</a>
+				</div>
 			</div>
 		</div>
+	</div>
+	<div class="hero__panel hero__panel--image">
+		<img
+			class="hero__panel-bg"
+			src="<?php echo esc_url( file_exists( $hero_necklace_path ) ? verena_asset_url( 'assets/img/' . $hero_necklace_file ) : $hero_placeholder ); ?>"
+			alt="Model mengenakan kalung liontin hati emas"
+		/>
 	</div>
 </section>
 
