@@ -31,6 +31,7 @@ require_once VERENA_JT_DIR . 'inc/rest-calculator.php';
 require_once VERENA_JT_DIR . 'inc/admin-leads-page.php';
 require_once VERENA_JT_DIR . 'inc/quick-edit-status.php';
 require_once VERENA_JT_DIR . 'inc/bullion-sheet-sync.php';
+require_once VERENA_JT_DIR . 'inc/buyback-karat-sheet-sync.php';
 
 /**
  * Activation: create custom tables, seed default purity options, flush rewrite rules.
@@ -52,6 +53,7 @@ register_activation_hook( __FILE__, 'verena_jt_activate' );
  */
 function verena_jt_deactivate() {
 	verena_jt_bullion_unschedule_sync();
+	verena_jt_buyback_karat_unschedule_sync();
 	flush_rewrite_rules();
 }
 register_deactivation_hook( __FILE__, 'verena_jt_deactivate' );

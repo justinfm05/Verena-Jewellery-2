@@ -7,12 +7,14 @@
  * calculator on page-gold-calculator.php. Deliberately duplicated here
  * rather than shared, so this page can be edited in isolation from that one.
  *
- * Saving an estimate and messaging WhatsApp are two DECOUPLED actions: every
- * saved estimate becomes a lead in wp-admin > Verena Jewellery > Gold
- * Calculator Leads regardless of whether the customer ever opens WhatsApp,
- * and the WhatsApp button itself is never gated on anything — clicking it
- * always works, and opportunistically saves a lead in the background first
- * if contact details are already filled in.
+ * Perhiasan items price directly off the "Jual Emas (Kadar)" Google Sheet
+ * tab as a lower/upper Rp-per-gram range (see
+ * verena_get_buyback_karat_data()). Logam Mulia items price off the same
+ * cached bullion sheet data (and the same buyback figures) as the
+ * Antam/Emasku/UBS bullion checkout pages — brand+year selects which rows,
+ * gram selects the row, never a separate/typed-in source. The WhatsApp
+ * button is the only call to action — no separate "save estimate" /
+ * lead-capture step.
  *
  * @package Verena_Jewellery
  */
@@ -21,54 +23,69 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 get_header();
 
-$buyback_rate  = verena_get_current_buyback_rate();
-$rate_per_gram = $buyback_rate ? (int) $buyback_rate['price_per_gram'] : 0;
-
-// Full 1K-24K karat list for the Perhiasan dropdown, same curated set as the
-// gold net-worth calculator (page-gold-calculator.php) — labelled by KARAT
-// with the gold % as a helper, preferring any purity the shop set in
-// wp-admin over the plain N/24 derivation.
-$stored_bps = array();
-foreach ( verena_get_purity_options() as $o ) {
-	$stored_bps[ $o['label'] ] = (int) $o['fraction_bps'];
-}
-
-// "91,6" style percent (Indonesian comma, trailing ",0" trimmed).
-$pct_fmt = function ( $bps ) {
-	return rtrim( rtrim( number_format( floor( $bps / 10 ) / 10, 1, ',', '.' ), '0' ), ',' );
-};
-
-$grade_defs = array(
-	array( 'value' => '24K' ),
-	array( 'value' => '22K' ),
-	array( 'value' => '21K' ),
-	array( 'value' => '18K' ),
-	array( 'value' => '17K' ),
-	array( 'value' => '16K' ),
-	array( 'value' => '14K' ),
-	array( 'value' => '9K' ),
-);
+// Perhiasan (jewellery) karat prices come directly from the "Jual Emas
+// (Kadar)" Google Sheet tab as a lower/upper Rp-per-gram range (see
+// verena_get_buyback_karat_data() / inc/buyback-karat-sheet-sync.php) — a
+// direct per-karat lookup.
+$karat_sheet = verena_get_buyback_karat_data();
+$karats      = $karat_sheet['karats'];
 
 $karat_options = array();
-foreach ( $grade_defs as $g ) {
-	$k   = (int) rtrim( $g['value'], 'K' );
-	$bps = $stored_bps[ $g['value'] ] ?? (int) round( $k / 24 * 10000 );
+foreach ( $karats as $label => $range ) {
+	if ( null === $range['lower'] && null === $range['upper'] ) {
+		continue;
+	}
 	$karat_options[] = array(
-		'label'        => $g['value'],
-		'fraction_bps' => $bps,
-		'display'      => $g['value'] . ' · ' . $pct_fmt( $bps ) . '% emas',
+		'label'   => $label,
+		'lower'   => $range['lower'],
+		'upper'   => $range['upper'],
+		'display' => $label,
 	);
 }
-if ( isset( $stored_bps['Tidak yakin / belum dicek'] ) ) {
+// Customers who don't know their karat: priced as an indicative ~14K until
+// checked for free in-store, same idea as the old "Tidak yakin" option.
+if ( isset( $karats['14K'] ) ) {
 	$karat_options[] = array(
-		'label'        => 'Tidak yakin / belum dicek',
-		'fraction_bps' => $stored_bps['Tidak yakin / belum dicek'],
-		'display'      => 'Belum tahu kadarnya — dicek gratis di toko',
+		'label'   => 'Tidak Yakin (~14K)',
+		'lower'   => $karats['14K']['lower'],
+		'upper'   => $karats['14K']['upper'],
+		'display' => 'Tidak Yakin (~14K) — dicek gratis di toko',
 	);
 }
+$default_purity = isset( $karats['17K'] ) ? '17K' : ( $karat_options[0]['label'] ?? '' ); // Most common gold in Indonesia (750/75%).
 
-$fraction24     = ( $stored_bps['24K'] ?? 9999 ) / 10000; // Logam Mulia = 24K.
-$default_purity = '17K'; // Most common gold in Indonesia (750/75%).
+// Logam Mulia (bars): same cached Google Sheet data (and same buyback
+// numbers) as the Antam/Emasku/UBS bullion checkout pages — never a
+// separate source. Antam carries three year tiers per gram row; Emasku/UBS
+// have one buyback figure per gram row.
+$bullion_sheet = verena_get_bullion_sheet_data();
+$brand_options  = array(
+	array(
+		'label' => 'Antam 2026',
+		'key'   => 'antam',
+		'year'  => '2026',
+	),
+	array(
+		'label' => 'Antam 2025',
+		'key'   => 'antam',
+		'year'  => '2025',
+	),
+	array(
+		'label' => 'Antam 2021-2024',
+		'key'   => 'antam',
+		'year'  => '2021-2024',
+	),
+	array(
+		'label' => 'Emasku',
+		'key'   => 'emasku',
+		'year'  => null,
+	),
+	array(
+		'label' => 'UBS',
+		'key'   => 'ubs',
+		'year'  => null,
+	),
+);
 
 $initial_items = array(
 	array(
@@ -76,17 +93,21 @@ $initial_items = array(
 		'description'  => '',
 		'weight_grams' => '',
 		'purity_label' => $default_purity,
-		'denom'        => '',
+		'brand'        => '',
+		'gram'         => '',
 		'qty'          => 1,
 	),
 );
 
 $config = array(
-	'ratePerGram'   => $rate_per_gram,
-	'fraction24'    => $fraction24,
+	'brandOptions'  => $brand_options,
+	'bullion'       => array(
+		'antam'  => $bullion_sheet['antam'],
+		'emasku' => $bullion_sheet['emasku'],
+		'ubs'    => $bullion_sheet['ubs'],
+	),
 	'purityOptions' => $karat_options,
 	'defaultPurity' => $default_purity,
-	'denomOptions'  => array( 0.5, 1, 2, 3, 5, 10, 25, 50, 100 ),
 	'weightPresets' => array(
 		array( 'label' => 'Cincin', 'grams' => 3 ),
 		array( 'label' => 'Kalung', 'grams' => 8 ),
@@ -95,8 +116,6 @@ $config = array(
 		array( 'label' => 'Liontin', 'grams' => 3 ),
 	),
 	'waNumber'      => verena_whatsapp_number(),
-	'restUrl'       => esc_url_raw( rest_url( 'verena/v1/calculator' ) ),
-	'nonce'         => wp_create_nonce( 'verena_calculator' ),
 	'initialItems'  => $initial_items,
 	'disclaimer'    => verena_estimate_disclaimer(),
 	'maxItems'      => VERENA_JT_MAX_ITEMS_PER_LIST,
@@ -109,10 +128,10 @@ while ( have_posts() ) : the_post();
 			<p class="eyebrow">Jual Emas Anda</p>
 			<h1><?php the_title(); ?></h1>
 			<div class="stack"><?php the_content(); ?></div>
-			<p class="text-muted">Tambahkan perhiasan (termasuk emas patah/rongsokan) atau logam mulia Anda untuk melihat estimasi nilainya di kadar berapa pun — lalu simpan estimasi Anda dan/atau chat langsung dengan Verena lewat WhatsApp.</p>
+			<p class="text-muted">Tambahkan perhiasan (termasuk emas patah/rongsokan) atau logam mulia Anda untuk melihat estimasi nilainya di kadar berapa pun — lalu chat langsung dengan Verena lewat WhatsApp.</p>
 		</div>
 
-		<?php if ( ! $buyback_rate ) : ?>
+		<?php if ( empty( $karat_options ) ) : ?>
 			<div class="empty-state">
 				<p>Estimator sedang tidak tersedia. Silakan hubungi kami langsung untuk penawaran.</p>
 				<?php verena_whatsapp_button( 'Halo Verena Jewellery, saya ingin jual emas bekas.', 'Tanya via WhatsApp' ); ?>
@@ -127,11 +146,11 @@ while ( have_posts() ) : the_post();
 				</div>
 				<div class="calc-howto__step">
 					<span class="calc-howto__num">2</span>
-					<p><strong>Isi berat (gram) dan pilih kadar.</strong> Tidak tahu kadarnya? Pilih <em>“Belum tahu”</em> — kami cek gratis di toko.</p>
+					<p><strong>Isi berat (gram) dan pilih kadar.</strong> Tidak tahu kadarnya? Pilih <em>“Tidak Yakin (~14K)”</em> — kami cek gratis di toko.</p>
 				</div>
 				<div class="calc-howto__step">
 					<span class="calc-howto__num">3</span>
-					<p><strong>Simpan estimasi Anda</strong>, lalu chat kami via WhatsApp kapan pun Anda siap melanjutkan.</p>
+					<p><strong>Lihat estimasi Anda</strong>, lalu chat kami via WhatsApp kapan pun Anda siap melanjutkan.</p>
 				</div>
 			</div>
 
@@ -155,9 +174,34 @@ while ( have_posts() ) : the_post();
 							<tr><td>375</td><td>9K</td><td>37,5%</td></tr>
 						</tbody>
 					</table>
-					<p>Kalau masih ragu, pilih <strong>“Belum tahu”</strong> saat menambah emas — kadar dan beratnya akan kami periksa <strong>gratis</strong> di toko sebelum harga final.</p>
+					<p>Kalau masih ragu, pilih <strong>“Tidak Yakin (~14K)”</strong> saat menambah emas — kadar dan beratnya akan kami periksa <strong>gratis</strong> di toko sebelum harga final.</p>
 				</div>
 			</details>
+
+			<!-- Paxel pickup partnership -->
+			<div class="calc-edu" style="padding:24px 20px;">
+				<div class="delivery-journey" style="justify-content:center;" aria-hidden="true">
+					<div class="delivery-journey__icon">
+						<svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 11l8-7 8 7" stroke="#C9A24B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9h12v-9" stroke="#C9A24B" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 19v-5h4v5" stroke="#C9A24B" stroke-width="1.5" stroke-linejoin="round"/></svg>
+					</div>
+					<span class="delivery-journey__line"></span>
+					<div class="delivery-journey__icon">
+						<svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 7h11v9H2z" stroke="#C9A24B" stroke-width="1.5" stroke-linejoin="round"/><path d="M13 10h4l4 3v3h-2" stroke="#C9A24B" stroke-width="1.5" stroke-linejoin="round"/><circle cx="6" cy="18" r="1.6" stroke="#C9A24B" stroke-width="1.5"/><circle cx="17" cy="18" r="1.6" stroke="#C9A24B" stroke-width="1.5"/><path d="M2 16h1M17 16h-4" stroke="#C9A24B" stroke-width="1.5"/></svg>
+					</div>
+					<span class="delivery-journey__line"></span>
+					<div class="delivery-journey__icon">
+						<img src="<?php echo esc_url( verena_asset_url( 'assets/img/verena-logo-stacked.png' ) ); ?>" alt="Verena Jewellery" style="width:36px; height:36px; object-fit:contain;" />
+					</div>
+				</div>
+				<h3 class="text-center" style="margin:0 0 10px;">Kami Jemput Langsung dari Rumah Anda</h3>
+				<p class="text-center text-muted" style="margin:0;">Verena Jewellery bekerja sama dengan Paxel untuk menjemput emas Anda dengan aman, langsung dari rumah Anda — tanpa perlu repot datang ke toko.</p>
+			</div>
+
+			<div class="calc-title-divider">
+				<span class="calc-title-divider__line"></span>
+				<h3>Hitung Nilai Total Emas Anda</h3>
+				<span class="calc-title-divider__line"></span>
+			</div>
 
 			<div x-data="verenaBuybackCalculator(<?php echo esc_attr( wp_json_encode( $config ) ); ?>)" class="calc-layout">
 
@@ -207,20 +251,25 @@ while ( have_posts() ) : the_post();
 								</div>
 							</template>
 
-							<!-- Logam Mulia (bars): denomination x qty, 24K -->
+							<!-- Logam Mulia (bars): brand+year -> gram (buyback lookup) x qty -->
 							<template x-if="item.category === 'lm'">
 								<div>
 									<div class="calc-fields calc-fields--triple">
 										<div class="form-field mb-0">
-											<label>Merek / Deskripsi</label>
-											<input type="text" x-model="item.description" placeholder="cth. Antam, UBS">
+											<label>Merek</label>
+											<select x-model="item.brand" @change="item.gram = ''">
+												<option value="">Pilih merek</option>
+												<template x-for="option in brandOptions" :key="option.label">
+													<option :value="option.label" x-text="option.label"></option>
+												</template>
+											</select>
 										</div>
 										<div class="form-field mb-0">
 											<label>Ukuran (gram)</label>
-											<select x-model.number="item.denom">
+											<select x-model="item.gram">
 												<option value="">Pilih</option>
-												<template x-for="d in denomOptions" :key="d">
-													<option :value="d" x-text="d + ' gram'"></option>
+												<template x-for="g in lmGrams(item)" :key="g">
+													<option :value="g" x-text="formatGram(g) + ' gr'"></option>
 												</template>
 											</select>
 										</div>
@@ -229,13 +278,13 @@ while ( have_posts() ) : the_post();
 											<input type="number" min="1" step="1" x-model.number="item.qty" placeholder="1">
 										</div>
 									</div>
-									<p class="calc-hint">Emas murni 24K (999). Ukuran tertera di keping &amp; sertifikat, jadi nilainya pasti.</p>
+									<p class="calc-hint">Harga buyback diambil langsung dari harga resmi hari ini, sama seperti halaman Logam Mulia kami — jadi nilainya pasti.</p>
 								</div>
 							</template>
 
 							<div class="calc-item__foot">
 								<span class="calc-item__foot-label">Perkiraan nilai</span>
-								<span class="calc-item__value" x-text="formatRp(estimateFor(item))"></span>
+								<span class="calc-item__value" x-text="formatRange(rangeFor(item))"></span>
 							</div>
 						</div>
 					</template>
@@ -243,46 +292,22 @@ while ( have_posts() ) : the_post();
 					<button type="button" class="btn btn-outline calc-add" @click="addItem()" x-show="items.length < maxItems">+ Tambah Emas</button>
 				</div>
 
-				<!-- RIGHT: sticky total + lead capture + WhatsApp -->
+				<!-- RIGHT: sticky total + WhatsApp -->
 				<div class="calc-summary">
 					<div class="calc-summary-card">
 						<h3>Estimasi Nilai Emas Anda</h3>
 						<p class="calc-sub"><span x-text="validItems.length"></span> item &middot; harga buyback hari ini</p>
 						<div class="calc-total-big" x-text="formattedTotal"></div>
 						<p class="calc-subtotals">
-							Perhiasan: <strong x-text="formatRp(subtotalPerhiasan)"></strong> &middot;
+							Perhiasan: <strong x-text="formatRange(subtotalPerhiasanRange)"></strong><br>
 							Logam Mulia: <strong x-text="formatRp(subtotalLm)"></strong>
 						</p>
 						<p class="calc-disclaimer" x-text="disclaimer"></p>
 
 						<div class="calc-save">
-							<h4>Simpan Estimasi Anda</h4>
-							<p style="font-size:12px;color:var(--champagne-dim);margin:0 0 10px;line-height:1.5;">Agar tim kami bisa menghubungi Anda untuk estimasi final.</p>
-							<div class="form-field mb-0">
-								<input type="text" x-model="contactName" placeholder="Nama Anda">
-							</div>
-							<div class="form-field mb-0">
-								<input type="text" inputmode="tel" x-model="contactWa" placeholder="No. WhatsApp Anda (cth. 08123456789)">
-							</div>
-							<div class="honeypot-field" aria-hidden="true">
-								<input type="text" x-model="website" tabindex="-1" autocomplete="off">
-							</div>
-							<p x-show="!contactValid" style="font-size:12px;color:var(--champagne-dim);margin:0 0 10px;line-height:1.5;">Isi nama &amp; nomor WhatsApp aktif Anda untuk menyimpan estimasi ini.</p>
-							<button type="button" class="btn btn-outline-light btn-block" @click="saveEstimate()" :disabled="saving" x-text="saving ? 'Menyimpan...' : 'Simpan Estimasi Saya'"></button>
-							<p x-show="saveError" x-text="saveError" style="color:#ffb3a3;font-size:0.8rem;margin-top:0.5rem;"></p>
-							<p x-show="saved && !saveError" style="color:#bfe3c8;font-size:0.8rem;margin-top:0.5rem;">Estimasi tersimpan — tim kami dapat menghubungi Anda.</p>
-							<p style="font-size:11px;color:var(--olive-2);margin-top:8px;line-height:1.5;">Data Anda hanya digunakan tim Verena untuk menindaklanjuti estimasi ini.</p>
-							<div class="share-link-box mt-4" x-show="shareUrl" x-cloak>
-								<code x-text="shareUrl" style="font-size:0.8rem;word-break:break-all;"></code>
-								<button type="button" class="btn btn-outline-light btn-sm" @click="copyLink()" x-text="copied ? 'Tersalin!' : 'Salin'"></button>
-							</div>
-						</div>
-
-						<div class="calc-save">
-							<p style="font-size:12px;color:var(--champagne-dim);margin:0 0 10px;line-height:1.5;">Ingin proses lebih cepat? Chat kami langsung dan kirim foto emas Anda yang sudah ditimbang.</p>
-							<a class="btn btn-gold btn-block" target="_blank" rel="noopener" :href="sellWaLink" @click="notifyWaClick()">
+							<a class="btn btn-gold btn-block" target="_blank" rel="noopener" :href="sellWaLink">
 								<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.87.5 3.62 1.38 5.13L2 22l5.05-1.32A9.94 9.94 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2z"/></svg>
-								Chat Verena &amp; Kirim Foto Emas Anda
+								Jual Emas via WhatsApp
 							</a>
 						</div>
 					</div>
@@ -297,33 +322,22 @@ while ( have_posts() ) : the_post();
 							description: item.description || '',
 							weight_grams: item.weight_grams || '',
 							purity_label: item.purity_label || config.defaultPurity,
-							denom: item.denom || '',
+							brand: item.brand || '',
+							gram: item.gram || '',
 							qty: item.qty || 1,
 						} ) ),
 						purityOptions: config.purityOptions,
 						defaultPurity: config.defaultPurity,
-						denomOptions: config.denomOptions,
+						brandOptions: config.brandOptions,
+						bullion: config.bullion,
 						weightPresets: config.weightPresets,
-						ratePerGram: config.ratePerGram,
-						fraction24: config.fraction24,
 						waNumber: config.waNumber,
-						restUrl: config.restUrl,
-						nonce: config.nonce,
 						disclaimer: config.disclaimer,
 						maxItems: config.maxItems,
-						slug: '',
-						contactName: '',
-						contactWa: '',
-						website: '',
-						saving: false,
-						saved: false,
-						saveError: '',
-						shareUrl: '',
-						copied: false,
 
 						addItem() {
 							if ( this.items.length >= this.maxItems ) return;
-							this.items.push( { category: 'perhiasan', description: '', weight_grams: '', purity_label: this.defaultPurity, denom: '', qty: 1 } );
+							this.items.push( { category: 'perhiasan', description: '', weight_grams: '', purity_label: this.defaultPurity, brand: '', gram: '', qty: 1 } );
 						},
 						removeItem( index ) { this.items.splice( index, 1 ); },
 						applyPreset( item, event ) {
@@ -331,44 +345,79 @@ while ( have_posts() ) : the_post();
 							if ( v > 0 ) { item.weight_grams = v; }
 							event.target.value = '';
 						},
+						formatGram( g ) { return String( g ).replace( '.', ',' ); },
+						// Rows for the item's selected brand+year (Emasku/UBS have no
+						// year dimension), filtered to ones with a real buyback figure —
+						// same rows shown on the Antam/Emasku/UBS bullion checkout pages.
+						lmRows( item ) {
+							const option = this.brandOptions.find( ( o ) => o.label === item.brand );
+							if ( ! option ) { return []; }
+							const rows = this.bullion[ option.key ] || [];
+							return rows.filter( ( r ) => {
+								const buyback = option.year ? ( r[ option.year ] ? r[ option.year ].buyback : null ) : r.buyback;
+								return null !== buyback && undefined !== buyback;
+							} );
+						},
+						lmGrams( item ) { return this.lmRows( item ).map( ( r ) => r.gram ); },
+						lmValue( item ) {
+							const option = this.brandOptions.find( ( o ) => o.label === item.brand );
+							const qty = parseInt( item.qty ) || 0;
+							if ( ! option || '' === item.gram || qty <= 0 ) { return 0; }
+							const row = this.lmRows( item ).find( ( r ) => Number( r.gram ) === Number( item.gram ) );
+							if ( ! row ) { return 0; }
+							const perUnit = option.year ? row[ option.year ].buyback : row.buyback;
+							if ( null === perUnit || undefined === perUnit ) { return 0; }
+							return Math.round( perUnit * qty / 100 ) * 100;
+						},
 						gramsFor( item ) {
 							if ( item.category === 'lm' ) {
-								return ( parseFloat( item.denom ) || 0 ) * ( parseInt( item.qty ) || 0 );
+								return ( parseFloat( item.gram ) || 0 ) * ( parseInt( item.qty ) || 0 );
 							}
 							return parseFloat( item.weight_grams ) || 0;
 						},
-						fractionFor( item ) {
-							if ( item.category === 'lm' ) { return this.fraction24; }
-							const p = this.purityOptions.find( ( o ) => o.label === item.purity_label );
-							return p ? p.fraction_bps / 10000 : 0;
-						},
-						estimateFor( item ) {
+						// Perhiasan: direct per-karat lower/upper Rp-per-gram lookup from the
+						// "Jual Emas (Kadar)" sheet — a real range, not a computed fraction.
+						// Logam Mulia items report the same single value as both ends of the
+						// range so totals can sum both categories uniformly.
+						rangeFor( item ) {
+							if ( item.category === 'lm' ) {
+								const val = this.lmValue( item );
+								return { low: val, high: val };
+							}
 							const grams = this.gramsFor( item );
-							const fraction = this.fractionFor( item );
-							if ( grams <= 0 || fraction <= 0 || ! this.ratePerGram ) { return 0; }
-							return Math.round( grams * fraction * this.ratePerGram / 100 ) * 100;
+							const option = this.purityOptions.find( ( o ) => o.label === item.purity_label );
+							if ( grams <= 0 || ! option || null === option.lower || null === option.upper ) {
+								return { low: 0, high: 0 };
+							}
+							const round100 = ( n ) => Math.round( n / 100 ) * 100;
+							return {
+								low: round100( grams * option.lower ),
+								high: round100( grams * option.upper ),
+							};
 						},
 						get validItems() { return this.items.filter( ( it ) => this.gramsFor( it ) > 0 ); },
-						get total() { return this.validItems.reduce( ( sum, it ) => sum + this.estimateFor( it ), 0 ); },
-						get subtotalPerhiasan() { return this.validItems.filter( ( it ) => it.category !== 'lm' ).reduce( ( s, it ) => s + this.estimateFor( it ), 0 ); },
-						get subtotalLm() { return this.validItems.filter( ( it ) => it.category === 'lm' ).reduce( ( s, it ) => s + this.estimateFor( it ), 0 ); },
+						get totalRange() {
+							return this.validItems.reduce( ( acc, it ) => {
+								const r = this.rangeFor( it );
+								acc.low += r.low;
+								acc.high += r.high;
+								return acc;
+							}, { low: 0, high: 0 } );
+						},
+						get subtotalPerhiasanRange() {
+							return this.validItems.filter( ( it ) => it.category !== 'lm' ).reduce( ( acc, it ) => {
+								const r = this.rangeFor( it );
+								acc.low += r.low;
+								acc.high += r.high;
+								return acc;
+							}, { low: 0, high: 0 } );
+						},
+						get subtotalLm() { return this.validItems.filter( ( it ) => it.category === 'lm' ).reduce( ( s, it ) => s + this.lmValue( it ), 0 ); },
 						formatRp( n ) { return 'Rp' + ( n || 0 ).toLocaleString( 'id-ID' ); },
-						get formattedTotal() { return this.formatRp( this.total ); },
-
-						itemToPayload( it ) {
-							const grams = this.gramsFor( it );
-							const label = it.category === 'lm' ? '24K' : it.purity_label;
-							const prefix = it.category === 'lm' ? '[Logam Mulia] ' : '[Perhiasan] ';
-							let desc = prefix + ( it.description || ( it.category === 'lm' ? 'Emas batangan' : 'Perhiasan' ) );
-							if ( it.category === 'lm' && it.denom ) { desc += ' ' + it.denom + 'gr x' + ( it.qty || 1 ); }
-							return { description: desc, weight_grams: grams, purity_label: label };
+						formatRange( range ) {
+							return range.low === range.high ? this.formatRp( range.low ) : this.formatRp( range.low ) + ' – ' + this.formatRp( range.high );
 						},
-
-						get waDigitsOnly() { return ( this.contactWa || '' ).replace( /\D/g, '' ); },
-						get contactValid() {
-							return this.contactName.trim().length > 0
-								&& this.waDigitsOnly.length >= 9 && this.waDigitsOnly.length <= 15;
-						},
+						get formattedTotal() { return this.formatRange( this.totalRange ); },
 
 						get sellWaLink() {
 							const lines = [ 'Halo Verena Jewellery, saya ingin jual emas berikut:' ];
@@ -376,93 +425,21 @@ while ( have_posts() ) : the_post();
 							this.validItems.slice( 0, maxLines ).forEach( ( it ) => {
 								const cat = it.category === 'lm' ? 'Logam Mulia' : 'Perhiasan';
 								const detail = it.category === 'lm'
-									? ( ( it.denom || '?' ) + ' gr x' + ( it.qty || 1 ) + ', 24K' )
+									? ( ( it.gram || '?' ) + ' gr x' + ( it.qty || 1 ) )
 									: ( this.gramsFor( it ) + ' gr, kadar ' + it.purity_label );
-								const desc = it.description || cat;
-								lines.push( '- ' + desc + ' (' + cat + '): ' + detail + ' (~' + this.formatRp( this.estimateFor( it ) ) + ')' );
+								const desc = it.category === 'lm' ? ( it.brand || cat ) : ( it.description || cat );
+								lines.push( '- ' + desc + ' (' + cat + '): ' + detail + ' (~' + this.formatRange( this.rangeFor( it ) ) + ')' );
 							} );
 							if ( this.validItems.length > maxLines ) {
 								lines.push( '...dan ' + ( this.validItems.length - maxLines ) + ' item lainnya.' );
 							}
 							lines.push( '' );
 							lines.push( 'Estimasi total: ' + this.formattedTotal );
-							if ( this.contactName.trim() ) { lines.push( 'Nama: ' + this.contactName.trim() ); }
-							if ( this.shareUrl ) { lines.push( 'Daftar lengkap: ' + this.shareUrl ); }
 							lines.push( '' );
 							lines.push( 'Berikut emas saya — saya akan kirimkan foto beserta berat & kadar yang sudah saya catat.' );
 							lines.push( '' );
 							lines.push( this.disclaimer );
 							return 'https://wa.me/' + this.waNumber + '?text=' + encodeURIComponent( lines.join( '\n' ) );
-						},
-
-						async persistEstimate() {
-							if ( this.validItems.length === 0 || ! this.contactValid ) {
-								return false;
-							}
-							this.saving = true;
-							this.saveError = '';
-							const payload = {
-								items: this.validItems.map( ( it ) => this.itemToPayload( it ) ),
-								contact_name: this.contactName,
-								contact_whatsapp: this.contactWa,
-								security: this.nonce,
-								website: this.website,
-							};
-							const url = this.slug ? this.restUrl + '/' + this.slug : this.restUrl;
-							const method = this.slug ? 'PUT' : 'POST';
-							const FRIENDLY_ERRORS = {
-								verena_no_items: 'Tambahkan minimal satu barang emas sebelum menyimpan.',
-								verena_no_valid_items: 'Periksa kembali berat/kadar barang Anda — ada yang belum valid.',
-								verena_rate_limited: 'Terlalu banyak percobaan dari perangkat ini. Coba lagi sebentar lagi, atau hubungi kami langsung via WhatsApp.',
-								verena_no_rate: 'Harga buyback sedang tidak tersedia. Coba lagi sebentar lagi.',
-								verena_invalid_nonce: 'Halaman ini sudah lama terbuka. Muat ulang halaman lalu coba lagi.',
-							};
-							try {
-								const response = await fetch( url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify( payload ) } );
-								const data = await response.json();
-								if ( ! response.ok ) {
-									throw new Error( FRIENDLY_ERRORS[ data.code ] || 'Terjadi kesalahan saat menyimpan. Silakan coba lagi.' );
-								}
-								this.slug = data.slug;
-								this.shareUrl = data.shareable_url;
-								this.saved = true;
-								return true;
-							} catch ( error ) {
-								this.saveError = error instanceof TypeError
-									? 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda dan coba lagi.'
-									: error.message;
-								return false;
-							} finally {
-								this.saving = false;
-							}
-						},
-
-						async saveEstimate() {
-							this.saveError = '';
-							if ( this.validItems.length === 0 ) {
-								this.saveError = 'Tambahkan minimal satu barang emas dengan berat yang valid.';
-								return;
-							}
-							if ( ! this.contactValid ) {
-								return;
-							}
-							await this.persistEstimate();
-						},
-
-						notifyWaClick() {
-							// Best-effort, non-blocking: if contact info is already
-							// valid, capture the lead in the background without
-							// delaying the WhatsApp navigation this click triggers.
-							if ( this.contactValid && this.validItems.length > 0 ) {
-								this.persistEstimate();
-							}
-						},
-
-						copyLink() {
-							navigator.clipboard.writeText( this.shareUrl ).then( () => {
-								this.copied = true;
-								setTimeout( () => { this.copied = false; }, 2000 );
-							} );
 						},
 					};
 				}

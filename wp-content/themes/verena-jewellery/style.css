@@ -806,7 +806,7 @@ p { margin: 0 0 var(--space-2); }
 .calc-summary-card { background: var(--forest); color: var(--champagne); border-radius: var(--radius-lg); padding: 26px 24px; }
 .calc-summary-card h3 { color: var(--champagne); font-style: italic; margin: 0 0 4px; }
 .calc-summary-card .calc-sub { font-size: 13px; color: var(--champagne-dim); margin: 0 0 16px; }
-.calc-total-big { font-family: var(--font-display); font-size: clamp(2.2rem, 6vw, 2.8rem); color: var(--gold-bright); font-weight: 600; line-height: 1.1; }
+.calc-total-big { font-family: var(--font-display); font-size: clamp(1.3rem, 3.4vw, 1.7rem); color: var(--gold-bright); font-weight: 600; line-height: 1.15; white-space: nowrap; }
 .calc-subtotals { font-size: 12.5px; color: var(--champagne-dim); margin: 8px 0 18px; }
 .calc-subtotals strong { color: var(--champagne); }
 .calc-summary-card .btn-gold { font-size: 1rem; padding: 15px 20px; }
@@ -828,6 +828,10 @@ p { margin: 0 0 var(--space-2); }
 .calc-edu__body { padding: 16px 0 20px; font-size: 14px; line-height: 1.7; color: var(--ink-muted); }
 .calc-edu__body p { margin: 0 0 12px; }
 .calc-edu__body strong { color: var(--forest); }
+
+.calc-title-divider { display: flex; align-items: center; gap: 16px; margin: 32px 0 20px; }
+.calc-title-divider__line { flex: 1; height: 1px; background: var(--line-light-strong); }
+.calc-title-divider h3 { margin: 0; font-size: 1.15rem; font-weight: 700; white-space: nowrap; }
 .karat-ref { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13.5px; }
 .karat-ref th, .karat-ref td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line-light); }
 .karat-ref th { color: var(--gold-ink); font-family: var(--font-body); text-transform: uppercase; font-size: 11px; letter-spacing: 0.08em; font-weight: 700; }
