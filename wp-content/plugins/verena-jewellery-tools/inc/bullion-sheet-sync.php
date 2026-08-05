@@ -176,10 +176,17 @@ function verena_jt_bullion_parse_csv( $csv_body ) {
 /**
  * Fetch the published sheet and cache the parsed result. Runs every 5
  * minutes via WP-Cron; also called on-demand the first time the cache is
- * empty. Stores a plain UTC timestamp (not current_time()'s site-offset
- * timestamp) so the theme can convert it to Jakarta time explicitly and
- * unambiguously when displaying it, regardless of the site's own configured
- * WordPress timezone setting.
+ * empty.
+ *
+ * `changed_at` is tracked per brand (antam/emasku/ubs) rather than one
+ * shared timestamp: each sync compares the newly parsed rows against what
+ * was cached before, and only bumps that brand's `changed_at` when its own
+ * rows actually differ. Otherwise every 5-minute sync (which happens on
+ * whichever page view triggers WP-Cron's due check) would make "Harga
+ * terakhir diperbarui" look like it changed even when the price didn't.
+ * Stores plain UTC timestamps (not current_time()'s site-offset timestamp)
+ * so the theme can convert to Jakarta time explicitly and unambiguously,
+ * regardless of the site's own configured WordPress timezone setting.
  *
  * @return bool
  */
@@ -190,8 +197,20 @@ function verena_jt_sync_bullion_sheet() {
 		return false;
 	}
 
-	$data               = verena_jt_bullion_parse_csv( wp_remote_retrieve_body( $response ) );
-	$data['fetched_at'] = time();
+	$old  = get_option( 'verena_bullion_sheet_cache', false );
+	$data = verena_jt_bullion_parse_csv( wp_remote_retrieve_body( $response ) );
+	$now  = time();
+
+	$changed_at = array();
+	foreach ( array( 'antam', 'emasku', 'ubs' ) as $key ) {
+		$old_rows              = $old && isset( $old[ $key ] ) ? $old[ $key ] : null;
+		$old_changed_at        = $old && isset( $old['changed_at'][ $key ] ) ? $old['changed_at'][ $key ] : null;
+		$changed_at[ $key ]    = ( null !== $old_rows && $old_rows === $data[ $key ] && $old_changed_at )
+			? $old_changed_at
+			: $now;
+	}
+	$data['changed_at'] = $changed_at;
+	$data['fetched_at'] = $now;
 
 	update_option( 'verena_bullion_sheet_cache', $data, false );
 	return true;
@@ -199,11 +218,14 @@ function verena_jt_sync_bullion_sheet() {
 add_action( 'verena_jt_sync_bullion_sheet_event', 'verena_jt_sync_bullion_sheet' );
 
 /**
- * Public accessor for the theme: the three tables' display-ready rows plus
- * a fetched_at timestamp. Falls back to an immediate fetch if the cache is
- * empty (e.g. right after activation, before the first scheduled run has fired).
+ * Public accessor for the theme: the three tables' display-ready rows, a
+ * per-brand `changed_at` (use this for "Harga terakhir diperbarui" — it only
+ * moves when that brand's prices actually change), and `fetched_at` (the
+ * last time the sheet was checked at all, changed or not). Falls back to an
+ * immediate fetch if the cache is empty (e.g. right after activation, before
+ * the first scheduled run has fired).
  *
- * @return array{antam: array, emasku: array, ubs: array, fetched_at: int|null}
+ * @return array{antam: array, emasku: array, ubs: array, changed_at: array{antam: int|null, emasku: int|null, ubs: int|null}, fetched_at: int|null}
  */
 function verena_get_bullion_sheet_data() {
 	$data = get_option( 'verena_bullion_sheet_cache', false );
@@ -215,6 +237,11 @@ function verena_get_bullion_sheet_data() {
 		'antam'      => array(),
 		'emasku'     => array(),
 		'ubs'        => array(),
+		'changed_at' => array(
+			'antam'  => null,
+			'emasku' => null,
+			'ubs'    => null,
+		),
 		'fetched_at' => null,
 	);
 }

@@ -21,14 +21,15 @@ $hero_texture_path  = get_template_directory() . '/assets/img/' . $hero_texture_
 $hero_necklace_path = get_template_directory() . '/assets/img/' . $hero_necklace_file;
 $hero_placeholder   = get_template_directory_uri() . '/assets/img/hero-placeholder.png';
 
-/* Past custom-order process clips. Drop matching video files into
-   assets/video/ and each slot switches from the placeholder to a real
-   <video> automatically — no code change needed. */
-$showcase_videos = array(
-	array( 'file' => 'custom-showcase-1.mp4' ),
-	array( 'file' => 'custom-showcase-2.mp4' ),
-	array( 'file' => 'custom-showcase-3.mp4' ),
-	array( 'file' => 'custom-showcase-4.mp4' ),
+/* Past custom-order process clips (video) or stills (image). Drop a
+   matching file into assets/video/ or assets/img/ and each slot switches
+   from the placeholder to the real media automatically — no code change
+   needed. */
+$showcase_items = array(
+	array( 'type' => 'video', 'file' => 'custom-showcase-1.mp4' ),
+	array( 'type' => 'video', 'file' => 'custom-showcase-2.mp4' ),
+	array( 'type' => 'image', 'file' => 'custom-showcase-3.jpg' ),
+	array( 'type' => 'video', 'file' => 'custom-showcase-4.mp4' ),
 );
 ?>
 
@@ -102,9 +103,8 @@ $showcase_videos = array(
 					<span>Sampai di Rumah</span>
 				</div>
 			</div>
-			<a class="btn btn-gold" style="margin-top:8px;" href="<?php echo esc_url( verena_wa_url( 'Halo Verena Jewellery, saya ingin tanya soal pengiriman ke rumah via Paxel.' ) ); ?>" target="_blank" rel="noopener">
-				<?php echo verena_wa_icon( 18 ); // phpcs:ignore -- trusted inline SVG. ?>
-				Tanya Soal Pengiriman
+			<a class="btn btn-gold" style="margin-top:24px;" href="<?php echo esc_url( verena_page_url( 'bullion' ) ); ?>">
+				Beli Logam Mulia Sekarang
 			</a>
 		</div>
 	</div>
@@ -119,17 +119,32 @@ $showcase_videos = array(
 		</div>
 
 		<div class="showcase-grid">
-			<?php foreach ( $showcase_videos as $item ) : ?>
-				<?php $video_path = get_template_directory() . '/assets/video/' . $item['file']; ?>
+			<?php foreach ( $showcase_items as $item ) : ?>
+				<?php
+				$is_video = 'video' === $item['type'];
+				$subdir   = $is_video ? 'assets/video/' : 'assets/img/';
+				$rel_path = $subdir . $item['file'];
+				$abs_path = get_template_directory() . '/' . $rel_path;
+				?>
 				<div class="showcase-video">
-					<?php if ( file_exists( $video_path ) ) : ?>
-						<video src="<?php echo esc_url( verena_asset_url( 'assets/video/' . $item['file'] ) ); ?>" controls playsinline muted></video>
+					<?php if ( file_exists( $abs_path ) ) : ?>
+						<?php if ( $is_video ) : ?>
+							<video src="<?php echo esc_url( verena_asset_url( $rel_path ) ); ?>" controls playsinline muted autoplay loop></video>
+						<?php else : ?>
+							<img src="<?php echo esc_url( verena_asset_url( $rel_path ) ); ?>" alt="Contoh hasil custom design" />
+						<?php endif; ?>
 					<?php else : ?>
 						<span class="showcase-video__placeholder">Placeholder Video of Custom Product</span>
 					<?php endif; ?>
 				</div>
 			<?php endforeach; ?>
 		</div>
+
+		<?php if ( $shop['instagram'] ) : ?>
+			<p class="text-center" style="margin-top:20px;">
+				<a class="ig-more" href="<?php echo esc_url( $shop['instagram'] ); ?>" target="_blank" rel="noopener">Lihat lebih banyak contoh di Instagram &rarr;</a>
+			</p>
+		<?php endif; ?>
 
 		<p class="text-center showcase-cta-line">Konsultasi Sekarang dan &#10024; Wujudkan Impianmu &#10024;</p>
 
@@ -140,9 +155,9 @@ $showcase_videos = array(
 </section>
 
 <!-- Testimonials -->
-<section class="band band--forest">
+<section class="band band--forest" style="padding:56px 24px;">
 	<div class="band__inner" style="max-width:1160px;">
-		<div class="band__head">
+		<div class="band__head" style="margin-bottom:32px;">
 			<span class="eyebrow">Dipercaya Sejak <?php echo esc_html( $shop['established'] ); ?></span>
 			<h2>Kata Pelanggan Kami</h2>
 		</div>

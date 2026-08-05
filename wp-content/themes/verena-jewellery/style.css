@@ -487,7 +487,7 @@ p { margin: 0 0 var(--space-2); }
 	align-items: center;
 	justify-content: center;
 }
-.showcase-video video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.showcase-video video, .showcase-video img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .showcase-video__placeholder {
 	font-family: var(--font-body);
 	font-size: 12px;
@@ -520,19 +520,20 @@ p { margin: 0 0 var(--space-2); }
 /* ------------------------------------------------------------------ */
 /* Testimonials                                                        */
 /* ------------------------------------------------------------------ */
-.testi-grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
+.testi-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
 @media (min-width: 780px) { .testi-grid { grid-template-columns: repeat(3, 1fr); } }
 .testi-card {
 	background: rgba(242, 233, 204, 0.05);
 	border: 1px solid rgba(242, 233, 204, 0.12);
 	border-radius: 4px;
-	padding: 32px 28px;
+	padding: 20px 18px;
 	display: flex;
 	flex-direction: column;
-	gap: 18px;
+	gap: 10px;
 }
+.testi-stars svg { width: 13px; height: 13px; }
 .testi-stars { display: flex; gap: 3px; }
-.testi-quote { font-family: var(--font-display); font-style: italic; font-size: 19px; line-height: 1.6; color: var(--champagne); margin: 0; }
+.testi-quote { font-family: var(--font-display); font-style: italic; font-size: 15.5px; line-height: 1.5; color: var(--champagne); margin: 0; }
 .testi-name { font-family: var(--font-body); font-size: 13.5px; font-weight: 600; color: var(--champagne); margin: 0; }
 .testi-loc { font-family: var(--font-body); font-size: 12.5px; color: var(--olive-2); margin: 2px 0 0; }
 

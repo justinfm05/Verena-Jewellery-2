@@ -25,11 +25,18 @@ while ( have_posts() ) : the_post();
 
 	$sheet = verena_get_bullion_sheet_data();
 
-	// Always show this in Jakarta time regardless of the site's own configured
-	// WordPress timezone setting, since the shop and "WIB" label are fixed.
-	$updated_label = $sheet['fetched_at']
-		? wp_date( 'j F Y, H:i', $sheet['fetched_at'], new DateTimeZone( 'Asia/Jakarta' ) ) . ' WIB'
-		: null;
+	// Per brand, not a single shared timestamp — each only moves when that
+	// brand's own prices actually change (see changed_at in
+	// verena_get_bullion_sheet_data()), not on every sheet sync. Always shown
+	// in Jakarta time regardless of the site's own configured WordPress
+	// timezone setting, since the shop and "WIB" label are fixed.
+	$updated_labels = array();
+	foreach ( array( 'antam', 'emasku', 'ubs' ) as $key ) {
+		$changed_at             = $sheet['changed_at'][ $key ] ?? null;
+		$updated_labels[ $key ] = $changed_at
+			? wp_date( 'j F Y, H:i', $changed_at, new DateTimeZone( 'Asia/Jakarta' ) ) . ' WIB'
+			: null;
+	}
 	?>
 	<main class="container section">
 		<div class="text-center section-narrow" style="margin-bottom:var(--space-4);">
@@ -102,8 +109,8 @@ while ( have_posts() ) : the_post();
 					</tbody>
 				</table>
 			</div>
-			<?php if ( $updated_label ) : ?>
-				<p class="text-muted" style="font-size:0.85rem;">Harga terakhir diperbarui: <?php echo esc_html( $updated_label ); ?></p>
+			<?php if ( $updated_labels['antam'] ) : ?>
+				<p class="text-muted" style="font-size:0.85rem;">Harga terakhir diperbarui: <?php echo esc_html( $updated_labels['antam'] ); ?></p>
 			<?php endif; ?>
 		<?php endif; ?>
 
@@ -132,8 +139,8 @@ while ( have_posts() ) : the_post();
 						</tbody>
 					</table>
 				</div>
-				<?php if ( $updated_label ) : ?>
-					<p class="text-muted" style="font-size:0.85rem;">Harga terakhir diperbarui: <?php echo esc_html( $updated_label ); ?></p>
+				<?php if ( $updated_labels[ $key ] ) : ?>
+					<p class="text-muted" style="font-size:0.85rem;">Harga terakhir diperbarui: <?php echo esc_html( $updated_labels[ $key ] ); ?></p>
 				<?php endif; ?>
 			<?php endif; ?>
 		<?php endforeach; ?>
