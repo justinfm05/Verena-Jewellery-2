@@ -351,13 +351,49 @@ p { margin: 0 0 var(--space-2); }
 @media (min-width: 900px) { .hero { flex-direction: row; min-height: 88vh; } }
 .hero__panel { position: relative; width: 100%; }
 .hero__panel--text { min-height: 480px; display: flex; align-items: flex-end; background: var(--forest); }
-.hero__panel--image { aspect-ratio: 4 / 5; }
+.hero__panel--image { aspect-ratio: 3 / 2; overflow: hidden; }
 @media (min-width: 900px) {
 	.hero__panel { width: 50%; }
 	.hero__panel--text { min-height: auto; }
-	.hero__panel--image { aspect-ratio: auto; }
 }
 .hero__panel-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.hero__slide-track { display: flex; width: 100%; height: 100%; transition: transform 0.8s ease; }
+.hero__slide { flex: 0 0 100%; width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; user-select: none; }
+@media (prefers-reduced-motion: reduce) { .hero__slide-track { transition: none; } }
+.hero__panel--image { touch-action: pan-y; }
+.hero__arrow {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	z-index: 2;
+	width: 38px;
+	height: 38px;
+	border-radius: 50%;
+	border: none;
+	background: rgba(22, 32, 22, 0.4);
+	color: var(--champagne);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	padding: 0;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.2s ease, background 0.2s ease;
+}
+.hero__panel--image:hover .hero__arrow,
+.hero__panel--image:focus-within .hero__arrow {
+	opacity: 1;
+	pointer-events: auto;
+}
+.hero__arrow:hover { background: rgba(22, 32, 22, 0.65); }
+.hero__arrow--prev { left: 14px; }
+.hero__arrow--next { right: 14px; }
+/* No hover on touch devices — arrows would be permanently invisible and
+   unreachable, so hide them there in favor of the finger-swipe gesture. */
+@media (hover: none) {
+	.hero__arrow { display: none; }
+}
 .hero__panel-overlay { position: absolute; inset: 0; background: var(--forest); opacity: 0.6; }
 .hero__inner {
 	position: relative;
@@ -370,7 +406,11 @@ p { margin: 0 0 var(--space-2); }
 .hero .eyebrow { color: var(--gold); letter-spacing: 0.18em; font-size: 12px; margin-bottom: 20px; }
 .hero h1 { color: var(--champagne); margin: 0 0 24px; font-size: clamp(40px, 6vw, 68px); }
 .hero__body { font-size: 17px; line-height: 1.7; color: var(--champagne-dim); margin: 0 0 36px; max-width: 480px; }
-.hero__actions { display: flex; flex-wrap: wrap; gap: 16px; }
+.hero__actions { display: flex; flex-direction: column; gap: 8px; }
+.hero__actions-row { display: flex; flex-wrap: wrap; gap: 8px; }
+@media (max-width: 420px) {
+	.hero__actions-row { flex-direction: column; gap: 14px; }
+}
 
 /* ------------------------------------------------------------------ */
 /* Interior page header (forest band under the nav)                    */
@@ -406,6 +446,35 @@ p { margin: 0 0 var(--space-2); }
 	display: flex; align-items: center; justify-content: center;
 }
 .delivery-journey__line { width: 36px; height: 1px; background: rgba(201, 162, 75, 0.4); }
+.icon-mask {
+	display: inline-block;
+	-webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+	-webkit-mask-position: center; mask-position: center;
+	-webkit-mask-size: contain; mask-size: contain;
+}
+.paxel-partner {
+	position: relative;
+	overflow: hidden;
+	isolation: isolate;
+}
+.paxel-partner::before {
+	content: '';
+	position: absolute;
+	inset: -40%;
+	background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,236,214,0.45) 30%, transparent 60%);
+	animation: paxel-light-sweep 7s ease-in-out infinite;
+	pointer-events: none;
+	z-index: 0;
+}
+.paxel-partner > * { position: relative; z-index: 1; }
+@keyframes paxel-light-sweep {
+	0%   { transform: translate(-35%, -25%) scale(1); }
+	50%  { transform: translate(35%, 25%) scale(1.15); }
+	100% { transform: translate(-35%, -25%) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+	.paxel-partner::before { animation: none; }
+}
 .delivery-stats {
 	display: flex; flex-wrap: wrap; justify-content: center;
 	gap: 16px;
@@ -611,6 +680,7 @@ p { margin: 0 0 var(--space-2); }
 /* ------------------------------------------------------------------ */
 /* Tables (bullion pricing)                                            */
 /* ------------------------------------------------------------------ */
+.price-table-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
 .table-scroll { overflow-x: auto; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--line-light); }
 .price-table { width: 100%; border-collapse: collapse; background: var(--cream); }
 .price-table th, .price-table td { padding: 1rem 1.15rem; text-align: left; }
@@ -696,6 +766,7 @@ p { margin: 0 0 var(--space-2); }
 	transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .form-field input::placeholder, .vj-field::placeholder { color: #9a9078; }
+.form-field select:disabled { background: #EFEADA; color: #9a9078; cursor: not-allowed; }
 .form-field input:focus, .form-field select:focus, .form-field textarea:focus, .vj-field:focus {
 	outline: none;
 	border-color: var(--gold);
@@ -804,13 +875,13 @@ p { margin: 0 0 var(--space-2); }
 .calc-summary { position: static; }
 @media (min-width: 900px) { .calc-summary { position: sticky; top: 96px; } }
 .calc-summary-card { background: var(--forest); color: var(--champagne); border-radius: var(--radius-lg); padding: 26px 24px; }
-.calc-summary-card h3 { color: var(--champagne); font-style: italic; margin: 0 0 4px; }
-.calc-summary-card .calc-sub { font-size: 13px; color: var(--champagne-dim); margin: 0 0 16px; }
-.calc-total-big { font-family: var(--font-display); font-size: clamp(1.3rem, 3.4vw, 1.7rem); color: var(--gold-bright); font-weight: 600; line-height: 1.15; white-space: nowrap; }
-.calc-subtotals { font-size: 12.5px; color: var(--champagne-dim); margin: 8px 0 18px; }
+.calc-summary-card h3 { color: var(--champagne); font-style: italic; font-size: calc(1.55rem + 2px); margin: 0 0 4px; }
+.calc-summary-card .calc-sub { font-size: 14.5px; color: var(--champagne-dim); margin: 0 0 16px; }
+.calc-total-big { font-family: var(--font-display); font-size: clamp(1.45rem, 3.6vw, 1.85rem); color: var(--gold-bright); font-weight: 600; line-height: 1.15; white-space: nowrap; }
+.calc-subtotals { font-size: 13.5px; color: var(--champagne-dim); margin: 8px 0 18px; }
 .calc-subtotals strong { color: var(--champagne); }
 .calc-summary-card .btn-gold { font-size: 1rem; padding: 15px 20px; }
-.calc-disclaimer { font-size: 11.5px; line-height: 1.6; color: var(--olive-2); margin: 16px 0 0; }
+.calc-disclaimer { font-size: 12.5px; line-height: 1.6; color: var(--olive-2); margin: 16px 0 0; }
 
 /* Calculator — how-to steps + karat education */
 .calc-howto { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 0 0 20px; }
@@ -831,7 +902,7 @@ p { margin: 0 0 var(--space-2); }
 
 .calc-title-divider { display: flex; align-items: center; gap: 16px; margin: 32px 0 20px; }
 .calc-title-divider__line { flex: 1; height: 1px; background: var(--line-light-strong); }
-.calc-title-divider h3 { margin: 0; font-size: 1.15rem; font-weight: 700; white-space: nowrap; }
+.calc-title-divider h3 { margin: 0; font-size: calc(1.15rem + 2px); font-weight: 700; font-style: italic; white-space: nowrap; }
 .karat-ref { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13.5px; }
 .karat-ref th, .karat-ref td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line-light); }
 .karat-ref th { color: var(--gold-ink); font-family: var(--font-body); text-transform: uppercase; font-size: 11px; letter-spacing: 0.08em; font-weight: 700; }

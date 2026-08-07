@@ -79,11 +79,16 @@ while ( have_posts() ) : the_post();
 
 		<p class="text-muted">Harga kami terjamin paling murah, beli sekarang di Verena Jewellery. Info harga emas akan terkini:</p>
 
-		<h3 class="mt-4">Antam</h3>
+		<div class="price-table-head mt-4">
+			<h3 style="margin:0;">Antam</h3>
+			<?php if ( isset( $brand_urls['Antam'] ) ) : ?>
+				<a href="<?php echo esc_url( $brand_urls['Antam'] ); ?>" class="btn btn-gold btn-sm">Beli LM Antam</a>
+			<?php endif; ?>
+		</div>
 		<?php if ( empty( $sheet['antam'] ) ) : ?>
 			<p class="text-muted">Harga belum tersedia saat ini.</p>
 		<?php else : ?>
-			<div class="table-scroll mb-4">
+			<div class="table-scroll" style="margin-bottom:8px;">
 				<table class="price-table">
 					<thead>
 						<tr>
@@ -115,11 +120,16 @@ while ( have_posts() ) : the_post();
 		<?php endif; ?>
 
 		<?php foreach ( array( 'Emasku' => 'emasku', 'UBS' => 'ubs' ) as $label => $key ) : ?>
-			<h3 class="mt-4"><?php echo esc_html( $label ); ?></h3>
+			<div class="price-table-head mt-4">
+				<h3 style="margin:0;"><?php echo esc_html( $label ); ?></h3>
+				<?php if ( isset( $brand_urls[ $label ] ) ) : ?>
+					<a href="<?php echo esc_url( $brand_urls[ $label ] ); ?>" class="btn btn-gold btn-sm">Beli LM <?php echo esc_html( $label ); ?></a>
+				<?php endif; ?>
+			</div>
 			<?php if ( empty( $sheet[ $key ] ) ) : ?>
 				<p class="text-muted">Harga belum tersedia saat ini.</p>
 			<?php else : ?>
-				<div class="table-scroll mb-4">
+				<div class="table-scroll" style="margin-bottom:8px;">
 					<table class="price-table">
 						<thead>
 							<tr>

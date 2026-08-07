@@ -11,26 +11,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 get_header();
 
 $shop        = verena_shop_info();
-$wa_hero     = verena_wa_url( 'Halo Verena Jewellery, saya ingin bertanya tentang koleksi perhiasan.' );
 
 /* Hero split-panel images. Drop the real files in with these exact names
    and each side switches over automatically — no code change needed. */
 $hero_texture_file  = 'hero-texture.jpg';
-$hero_necklace_file = 'hero-necklace.jpg';
 $hero_texture_path  = get_template_directory() . '/assets/img/' . $hero_texture_file;
-$hero_necklace_path = get_template_directory() . '/assets/img/' . $hero_necklace_file;
 $hero_placeholder   = get_template_directory_uri() . '/assets/img/hero-placeholder.png';
 
-/* Past custom-order process clips (video) or stills (image). Drop a
-   matching file into assets/video/ or assets/img/ and each slot switches
-   from the placeholder to the real media automatically — no code change
-   needed. */
-$showcase_items = array(
-	array( 'type' => 'video', 'file' => 'custom-showcase-1.mp4' ),
-	array( 'type' => 'video', 'file' => 'custom-showcase-2.mp4' ),
-	array( 'type' => 'image', 'file' => 'custom-showcase-3.jpg' ),
-	array( 'type' => 'video', 'file' => 'custom-showcase-4.mp4' ),
-);
+/* Right-panel slideshow — 5 photos, each shown before sliding to the next
+   (see .hero__slide / the inline script at the bottom of this file). Set
+   under Verena Jewellery > Hero Slideshow in wp-admin (Media Library
+   picker), falls back to the theme's bundled placeholder file per slot. */
+$hero_slides = verena_get_hero_slides();
+
+/* Past custom-order process clips (video) or stills (image) — set under
+   Verena Jewellery > Custom Showcase in wp-admin (Media Library picker),
+   falls back to the theme's bundled placeholder file per slot. */
+$showcase_items = verena_get_showcase_media();
 ?>
 
 <!-- Hero -->
@@ -49,23 +46,160 @@ $showcase_items = array(
 				<h1>Perhiasan Emas untuk Momen yang Abadi</h1>
 				<p class="hero__body">Emas dan perhiasan pilihan, dipercaya keluarga Jakarta sejak 1999 — kini hanya sejauh satu pesan dari rumah Anda.</p>
 				<div class="hero__actions">
-					<a class="btn btn-gold" href="<?php echo esc_url( $wa_hero ); ?>" target="_blank" rel="noopener">
-						<?php echo verena_wa_icon( 18 ); // phpcs:ignore -- trusted inline SVG. ?>
-						Chat via WhatsApp
-					</a>
-					<a class="btn btn-outline-light" href="<?php echo esc_url( verena_page_url( 'bullion' ) ); ?>">Lihat Harga Emas Hari Ini</a>
+					<div class="hero__actions-row">
+						<a class="btn btn-gold" href="<?php echo esc_url( verena_page_url( 'buyback' ) ); ?>">Jual Emas Online</a>
+						<a class="btn btn-outline-light" href="<?php echo esc_url( verena_page_url( 'bullion' ) ); ?>">Beli Logam Mulia</a>
+					</div>
+					<div class="hero__actions-row">
+						<a class="btn btn-outline-light" href="<?php echo esc_url( verena_page_url( 'custom' ) ); ?>">Konsultasi Custom Design</a>
+						<a class="btn btn-outline-light" href="<?php echo esc_url( verena_page_url( 'repairs' ) ); ?>">Servis/Perbaiki Perhiasan</a>
+					</div>
 				</div>
 			</div>
 		</div>
 	</div>
-	<div class="hero__panel hero__panel--image">
-		<img
-			class="hero__panel-bg"
-			src="<?php echo esc_url( file_exists( $hero_necklace_path ) ? verena_asset_url( 'assets/img/' . $hero_necklace_file ) : $hero_placeholder ); ?>"
-			alt="Model mengenakan kalung liontin hati emas"
-		/>
+	<div class="hero__panel hero__panel--image" data-hero-slideshow>
+		<div class="hero__slide-track">
+			<?php foreach ( $hero_slides as $slide ) : ?>
+				<img
+					class="hero__slide"
+					src="<?php echo esc_url( $slide['url'] ); ?>"
+					alt="<?php echo esc_attr( $slide['alt'] ); ?>"
+				/>
+			<?php endforeach; ?>
+		</div>
+		<button type="button" class="hero__arrow hero__arrow--prev" data-hero-prev aria-label="Foto sebelumnya">
+			<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+		</button>
+		<button type="button" class="hero__arrow hero__arrow--next" data-hero-next aria-label="Foto berikutnya">
+			<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+		</button>
 	</div>
 </section>
+
+<script>
+	document.addEventListener( 'DOMContentLoaded', function () {
+		var panel = document.querySelector( '[data-hero-slideshow]' );
+		var track = panel ? panel.querySelector( '.hero__slide-track' ) : null;
+		if ( ! track ) return;
+
+		var real = Array.prototype.slice.call( track.children );
+		if ( real.length < 2 ) return;
+
+		// Clone the last slide onto the front and the first slide onto the end,
+		// so stepping past either edge (forward via autoplay/Next, backward via
+		// Prev) animates into a duplicate, then snaps invisibly back to the
+		// matching real slide once the transition finishes — a bidirectional
+		// version of the original forward-only loop trick.
+		track.insertBefore( real[ real.length - 1 ].cloneNode( true ), real[ 0 ] );
+		track.appendChild( real[ 0 ].cloneNode( true ) );
+
+		var current   = 1; // Slot 0 is the prepended clone; the real first slide is 1.
+		var lastReal  = real.length; // Slot of the last real slide.
+		var lastSlot  = track.children.length - 1; // The appended clone.
+
+		track.style.transition = 'none';
+		track.style.transform  = 'translateX(-' + ( current * 100 ) + '%)';
+		void track.offsetWidth; // Force reflow before re-enabling the transition.
+		track.style.transition = '';
+
+		function goTo( slot ) {
+			current = slot;
+			track.style.transform = 'translateX(-' + ( current * 100 ) + '%)';
+		}
+
+		track.addEventListener( 'transitionend', function () {
+			if ( current === lastSlot ) {
+				track.style.transition = 'none';
+				current = 1;
+				track.style.transform = 'translateX(-100%)';
+				void track.offsetWidth;
+				track.style.transition = '';
+			} else if ( current === 0 ) {
+				track.style.transition = 'none';
+				current = lastReal;
+				track.style.transform = 'translateX(-' + ( lastReal * 100 ) + '%)';
+				void track.offsetWidth;
+				track.style.transition = '';
+			}
+		} );
+
+		var AUTO_DELAY   = 2800;
+		var RESUME_DELAY = 8000;
+		var timer;
+		var resumeTimer;
+
+		function next() { goTo( current + 1 ); }
+		function prev() { goTo( current - 1 ); }
+
+		function startAuto() {
+			clearInterval( timer );
+			timer = setInterval( next, AUTO_DELAY );
+		}
+
+		// Manual navigation pauses autoplay rather than stopping it for good —
+		// it resumes on its own after a pause, so the slideshow never gets
+		// stuck on whatever slide a visitor last clicked to.
+		function pauseThenResume() {
+			clearInterval( timer );
+			clearTimeout( resumeTimer );
+			resumeTimer = setTimeout( startAuto, RESUME_DELAY );
+		}
+
+		startAuto();
+
+		var prevBtn = panel.querySelector( '[data-hero-prev]' );
+		var nextBtn = panel.querySelector( '[data-hero-next]' );
+		if ( prevBtn ) {
+			prevBtn.addEventListener( 'click', function () { prev(); pauseThenResume(); } );
+		}
+		if ( nextBtn ) {
+			nextBtn.addEventListener( 'click', function () { next(); pauseThenResume(); } );
+		}
+
+		// Finger/mouse swipe: drag follows the pointer 1:1, then either
+		// completes the step or snaps back depending on how far it moved.
+		var dragging  = false;
+		var startX    = 0;
+		var deltaX    = 0;
+		var panelWidth = 0;
+		var SWIPE_THRESHOLD = 0.15; // Fraction of panel width to commit to a slide change.
+
+		track.addEventListener( 'pointerdown', function ( e ) {
+			dragging    = true;
+			startX      = e.clientX;
+			deltaX      = 0;
+			panelWidth  = panel.getBoundingClientRect().width;
+			track.setPointerCapture( e.pointerId );
+			track.style.transition = 'none';
+			clearInterval( timer );
+			clearTimeout( resumeTimer );
+		} );
+
+		track.addEventListener( 'pointermove', function ( e ) {
+			if ( ! dragging ) return;
+			deltaX = e.clientX - startX;
+			var deltaPercent = ( deltaX / panelWidth ) * 100;
+			track.style.transform = 'translateX(calc(-' + ( current * 100 ) + '% + ' + deltaPercent + '%))';
+		} );
+
+		function endDrag() {
+			if ( ! dragging ) return;
+			dragging = false;
+			track.style.transition = '';
+			if ( deltaX / panelWidth < -SWIPE_THRESHOLD ) {
+				next();
+			} else if ( deltaX / panelWidth > SWIPE_THRESHOLD ) {
+				prev();
+			} else {
+				goTo( current );
+			}
+			pauseThenResume();
+		}
+		track.addEventListener( 'pointerup', endDrag );
+		track.addEventListener( 'pointercancel', endDrag );
+	} );
+</script>
 
 <!-- Delivery partnership (Paxel) -->
 <section class="band band--forest">
@@ -120,18 +254,12 @@ $showcase_items = array(
 
 		<div class="showcase-grid">
 			<?php foreach ( $showcase_items as $item ) : ?>
-				<?php
-				$is_video = 'video' === $item['type'];
-				$subdir   = $is_video ? 'assets/video/' : 'assets/img/';
-				$rel_path = $subdir . $item['file'];
-				$abs_path = get_template_directory() . '/' . $rel_path;
-				?>
 				<div class="showcase-video">
-					<?php if ( file_exists( $abs_path ) ) : ?>
-						<?php if ( $is_video ) : ?>
-							<video src="<?php echo esc_url( verena_asset_url( $rel_path ) ); ?>" controls playsinline muted autoplay loop></video>
+					<?php if ( $item['url'] ) : ?>
+						<?php if ( 'video' === $item['type'] ) : ?>
+							<video src="<?php echo esc_url( $item['url'] ); ?>" controls playsinline muted autoplay loop></video>
 						<?php else : ?>
-							<img src="<?php echo esc_url( verena_asset_url( $rel_path ) ); ?>" alt="Contoh hasil custom design" />
+							<img src="<?php echo esc_url( $item['url'] ); ?>" alt="Contoh hasil custom design" />
 						<?php endif; ?>
 					<?php else : ?>
 						<span class="showcase-video__placeholder">Placeholder Video of Custom Product</span>

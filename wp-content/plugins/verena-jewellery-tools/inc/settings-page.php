@@ -44,6 +44,24 @@ function verena_jt_register_admin_menu() {
 		'verena-settings',
 		'verena_jt_render_settings_page'
 	);
+
+	add_submenu_page(
+		'verena-gold-price',
+		'Custom Showcase (Beranda)',
+		'Custom Showcase',
+		'manage_options',
+		'verena-showcase-media',
+		'verena_jt_render_showcase_media_page'
+	);
+
+	add_submenu_page(
+		'verena-gold-price',
+		'Hero Slideshow (Beranda)',
+		'Hero Slideshow',
+		'manage_options',
+		'verena-hero-slides',
+		'verena_jt_render_hero_slides_page'
+	);
 }
 add_action( 'admin_menu', 'verena_jt_register_admin_menu' );
 

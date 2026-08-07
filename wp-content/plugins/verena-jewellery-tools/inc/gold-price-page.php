@@ -73,6 +73,32 @@ function verena_jt_handle_gold_price_save() {
 add_action( 'admin_init', 'verena_jt_handle_gold_price_save' );
 
 /**
+ * Manual "sync now" for the two Google-Sheet-backed price sources (bullion
+ * + buyback karat ranges). These normally refresh every 5 minutes via
+ * WP-Cron, but sometimes you need it right now — e.g. right after fixing a
+ * broken "Publish to the web" link, or after an urgent price change. This
+ * button bypasses the wait and fetches both sheets immediately.
+ */
+function verena_jt_handle_sheet_resync() {
+	if ( ! isset( $_POST['verena_sheet_resync_nonce'] ) || ! wp_verify_nonce( $_POST['verena_sheet_resync_nonce'], 'verena_sheet_resync' ) ) {
+		return;
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	$bullion_ok = function_exists( 'verena_jt_sync_bullion_sheet' ) ? verena_jt_sync_bullion_sheet() : false;
+	$karat_ok   = function_exists( 'verena_jt_sync_buyback_karat_sheet' ) ? verena_jt_sync_buyback_karat_sheet() : false;
+
+	if ( $bullion_ok && $karat_ok ) {
+		add_settings_error( 'verena_gold_price', 'resynced', 'Sheet harga (Logam Mulia & Jual Emas Kadar) berhasil disinkronkan.', 'success' );
+	} else {
+		add_settings_error( 'verena_gold_price', 'resync_failed', 'Sinkronisasi gagal untuk salah satu atau kedua sheet — periksa apakah sheet masih ter-publish ke web (File > Share > Publish to web > "Entire document").', 'error' );
+	}
+}
+add_action( 'admin_init', 'verena_jt_handle_sheet_resync' );
+
+/**
  * Render the daily price screen.
  */
 function verena_jt_render_gold_price_page() {
@@ -85,6 +111,11 @@ function verena_jt_render_gold_price_page() {
 	$current_gold_rates   = verena_get_all_current_gold_rates();
 	$current_buyback_rate = verena_get_current_buyback_rate();
 	$karats               = verena_jt_daily_karats();
+
+	// Google-Sheet-backed sources (Logam Mulia bullion prices, Jual Emas
+	// per-karat ranges) — separate from the manually-typed rates below.
+	$bullion_sheet_ts = function_exists( 'verena_get_bullion_sheet_data' ) ? ( verena_get_bullion_sheet_data()['fetched_at'] ?? null ) : null;
+	$karat_sheet_ts   = function_exists( 'verena_get_buyback_karat_data' ) ? ( verena_get_buyback_karat_data()['fetched_at'] ?? null ) : null;
 
 	// Most recent update timestamp across all shown rates, for the header line.
 	$latest = 0;
@@ -134,6 +165,26 @@ function verena_jt_render_gold_price_page() {
 		<?php if ( $latest ) : ?>
 			<p class="verena-price__updated">Terakhir diperbarui: <strong><?php echo esc_html( wp_date( 'd F Y, H:i', $latest ) ); ?></strong> WIB</p>
 		<?php endif; ?>
+
+		<div class="verena-price__card" style="margin-bottom:24px;">
+			<div class="verena-price__row" style="border-bottom:0;">
+				<div class="verena-price__label">
+					Sheet Harga Logam Mulia &amp; Jual Emas
+					<small>Harga Antam/Emasku/UBS dan kadar Jual Emas — otomatis dari Google Sheet setiap 5 menit</small>
+				</div>
+				<div style="text-align:right;">
+					<div class="verena-price__now">
+						Logam Mulia: <strong><?php echo $bullion_sheet_ts ? esc_html( wp_date( 'd M Y, H:i', $bullion_sheet_ts, new DateTimeZone( 'Asia/Jakarta' ) ) . ' WIB' ) : 'belum pernah'; ?></strong><br>
+						Jual Emas (Kadar): <strong><?php echo $karat_sheet_ts ? esc_html( wp_date( 'd M Y, H:i', $karat_sheet_ts, new DateTimeZone( 'Asia/Jakarta' ) ) . ' WIB' ) : 'belum pernah'; ?></strong>
+					</div>
+					<form method="post" style="margin-top:8px;">
+						<?php wp_nonce_field( 'verena_sheet_resync', 'verena_sheet_resync_nonce' ); ?>
+						<button type="submit" class="button">Sinkronkan Sheet Sekarang</button>
+					</form>
+				</div>
+			</div>
+			<p class="description" style="margin:12px 0 0;">Kalau Anda baru saja mengubah angka di Google Sheet dan belum terlihat di website, tekan tombol ini — jangan tunggu 5 menit.</p>
+		</div>
 
 		<form method="post">
 			<?php wp_nonce_field( 'verena_save_gold_price', 'verena_gold_price_nonce' ); ?>

@@ -25,6 +25,8 @@ require_once VERENA_JT_DIR . 'inc/formatting.php';
 require_once VERENA_JT_DIR . 'inc/pricing.php';
 require_once VERENA_JT_DIR . 'inc/whatsapp.php';
 require_once VERENA_JT_DIR . 'inc/settings-page.php';
+require_once VERENA_JT_DIR . 'inc/showcase-media-page.php';
+require_once VERENA_JT_DIR . 'inc/hero-slides-page.php';
 require_once VERENA_JT_DIR . 'inc/gold-price-page.php';
 require_once VERENA_JT_DIR . 'inc/purity-options-page.php';
 require_once VERENA_JT_DIR . 'inc/rest-calculator.php';

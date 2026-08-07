@@ -15,15 +15,10 @@ $shop      = verena_shop_info();
 $wa_number = preg_replace( '/\D+/', '', (string) $shop['whatsapp'] );
 $occasions = array( 'Cincin Kawin', 'Lamaran', 'Ulang Tahun', 'Hadiah Keluarga', 'Koleksi Pribadi', 'Lainnya' );
 
-/* Same Custom Showcase assets as the homepage — see front-page.php for the
-   file-drop convention (assets/video/ or assets/img/, placeholder until the
-   file exists). */
-$showcase_items = array(
-	array( 'type' => 'video', 'file' => 'custom-showcase-1.mp4' ),
-	array( 'type' => 'video', 'file' => 'custom-showcase-2.mp4' ),
-	array( 'type' => 'image', 'file' => 'custom-showcase-3.jpg' ),
-	array( 'type' => 'video', 'file' => 'custom-showcase-4.mp4' ),
-);
+/* Same Custom Showcase media as the homepage — set under Verena Jewellery >
+   Custom Showcase in wp-admin (Media Library picker), see
+   verena_get_showcase_media() in functions.php. */
+$showcase_items = verena_get_showcase_media();
 
 while ( have_posts() ) :
 	the_post();
@@ -49,18 +44,12 @@ endwhile;
 	<div class="band__inner">
 		<div class="showcase-grid" style="margin-bottom:20px;">
 			<?php foreach ( $showcase_items as $item ) : ?>
-				<?php
-				$is_video = 'video' === $item['type'];
-				$subdir   = $is_video ? 'assets/video/' : 'assets/img/';
-				$rel_path = $subdir . $item['file'];
-				$abs_path = get_template_directory() . '/' . $rel_path;
-				?>
 				<div class="showcase-video">
-					<?php if ( file_exists( $abs_path ) ) : ?>
-						<?php if ( $is_video ) : ?>
-							<video src="<?php echo esc_url( verena_asset_url( $rel_path ) ); ?>" controls playsinline muted autoplay loop></video>
+					<?php if ( $item['url'] ) : ?>
+						<?php if ( 'video' === $item['type'] ) : ?>
+							<video src="<?php echo esc_url( $item['url'] ); ?>" controls playsinline muted autoplay loop></video>
 						<?php else : ?>
-							<img src="<?php echo esc_url( verena_asset_url( $rel_path ) ); ?>" alt="Contoh hasil custom design" />
+							<img src="<?php echo esc_url( $item['url'] ); ?>" alt="Contoh hasil custom design" />
 						<?php endif; ?>
 					<?php else : ?>
 						<span class="showcase-video__placeholder">Placeholder Video of Custom Product</span>

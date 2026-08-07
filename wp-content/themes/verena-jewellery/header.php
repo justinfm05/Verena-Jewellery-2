@@ -51,11 +51,11 @@ $wa_nav   = verena_wa_url( 'Halo Verena Jewellery, saya ingin bertanya tentang p
 			<?php if ( verena_page_is_published( 'collection' ) ) : ?>
 				<a class="navlink" href="<?php echo esc_url( verena_page_url( 'collection', '?category=cincin-kawin' ) ); ?>">Cincin Kawin</a>
 			<?php endif; ?>
-			<?php if ( verena_page_is_published( 'custom' ) ) : ?>
-				<a class="navlink" href="<?php echo esc_url( verena_page_url( 'custom' ) ); ?>">Custom Design</a>
-			<?php endif; ?>
 			<?php if ( verena_page_is_published( 'buyback' ) ) : ?>
 				<a class="navlink" href="<?php echo esc_url( verena_page_url( 'buyback' ) ); ?>">Jual Emas</a>
+			<?php endif; ?>
+			<?php if ( verena_page_is_published( 'custom' ) ) : ?>
+				<a class="navlink" href="<?php echo esc_url( verena_page_url( 'custom' ) ); ?>">Custom Design</a>
 			<?php endif; ?>
 			<?php if ( verena_page_is_published( 'repairs' ) ) : ?>
 				<a class="navlink" href="<?php echo esc_url( verena_page_url( 'repairs' ) ); ?>">Servis &amp; Perbaikan</a>
@@ -87,11 +87,11 @@ $wa_nav   = verena_wa_url( 'Halo Verena Jewellery, saya ingin bertanya tentang p
 		<?php if ( verena_page_is_published( 'collection' ) ) : ?>
 			<a href="<?php echo esc_url( verena_page_url( 'collection', '?category=cincin-kawin' ) ); ?>">Cincin Kawin</a>
 		<?php endif; ?>
-		<?php if ( verena_page_is_published( 'custom' ) ) : ?>
-			<a href="<?php echo esc_url( verena_page_url( 'custom' ) ); ?>">Custom Design</a>
-		<?php endif; ?>
 		<?php if ( verena_page_is_published( 'buyback' ) ) : ?>
 			<a href="<?php echo esc_url( verena_page_url( 'buyback' ) ); ?>">Jual Emas</a>
+		<?php endif; ?>
+		<?php if ( verena_page_is_published( 'custom' ) ) : ?>
+			<a href="<?php echo esc_url( verena_page_url( 'custom' ) ); ?>">Custom Design</a>
 		<?php endif; ?>
 		<?php if ( verena_page_is_published( 'repairs' ) ) : ?>
 			<a href="<?php echo esc_url( verena_page_url( 'repairs' ) ); ?>">Servis &amp; Perbaikan</a>

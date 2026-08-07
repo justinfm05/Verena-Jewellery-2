@@ -319,4 +319,88 @@ function verena_asset_url( $relative_path ) {
 	return get_template_directory_uri() . '/' . $relative_path . '?ver=' . $version;
 }
 
+/**
+ * The 4 "Custom Showcase" slots shown on the homepage and the Custom Design
+ * page (front-page.php / page-custom-orders.php). Each slot pulls from the
+ * WordPress Media Library — set by staff under Verena Jewellery > Custom
+ * Showcase in wp-admin (see verena_jt_render_showcase_media_page() in the
+ * plugin) — so swapping a photo/video never needs a developer or a theme
+ * deploy. Falls back to the theme's bundled placeholder file for any slot
+ * that hasn't been set yet.
+ *
+ * @return array<int, array{type: string, url: string}>
+ */
+function verena_get_showcase_media() {
+	$defaults = array(
+		array( 'type' => 'video', 'file' => 'assets/video/custom-showcase-1.mp4' ),
+		array( 'type' => 'video', 'file' => 'assets/video/custom-showcase-2.mp4' ),
+		array( 'type' => 'image', 'file' => 'assets/img/custom-showcase-3.jpg' ),
+		array( 'type' => 'video', 'file' => 'assets/video/custom-showcase-4.mp4' ),
+	);
+	$attachment_ids = get_option( 'verena_showcase_media', array() );
+
+	$items = array();
+	foreach ( $defaults as $i => $default ) {
+		$attachment_id = (int) ( $attachment_ids[ $i ] ?? 0 );
+		if ( $attachment_id && 'attachment' === get_post_type( $attachment_id ) ) {
+			$mime      = get_post_mime_type( $attachment_id );
+			$items[]   = array(
+				'type' => ( $mime && 0 === strpos( $mime, 'video/' ) ) ? 'video' : 'image',
+				'url'  => wp_get_attachment_url( $attachment_id ),
+			);
+			continue;
+		}
+		$abs_path = get_template_directory() . '/' . $default['file'];
+		$items[]  = array(
+			'type' => $default['type'],
+			'url'  => file_exists( $abs_path ) ? verena_asset_url( $default['file'] ) : '',
+		);
+	}
+	return $items;
+}
+
+/**
+ * The 5 hero slideshow photos on the homepage (front-page.php). Each slot
+ * pulls from the WordPress Media Library — set by staff under Verena
+ * Jewellery > Hero Slideshow in wp-admin (see
+ * verena_jt_render_hero_slides_page() in the plugin) — so swapping a photo
+ * never needs a developer or a theme deploy. Falls back to the theme's
+ * bundled placeholder file for any slot that hasn't been set yet.
+ *
+ * @return array<int, array{url: string, alt: string}>
+ */
+function verena_get_hero_slides() {
+	$defaults = array(
+		array( 'file' => 'assets/img/hero-necklace.jpg', 'alt' => 'Model mengenakan kalung liontin hati emas' ),
+		array( 'file' => 'assets/img/hero-slide-2.jpg', 'alt' => 'Anting emas dengan baguette diamond' ),
+		array( 'file' => 'assets/img/hero-slide-3.jpg', 'alt' => 'Cincin dan anting emas rose gold motif anyaman' ),
+		array( 'file' => 'assets/img/hero-slide-4.jpg', 'alt' => 'Kalung dan cincin emas rose gold model peniti' ),
+		array( 'file' => 'assets/img/hero-slide-5.jpg', 'alt' => 'Koleksi cincin emas Verena Jewellery' ),
+	);
+	$slides = get_option( 'verena_hero_slides', array() );
+
+	$items = array();
+	foreach ( $defaults as $i => $default ) {
+		$slide         = $slides[ $i ] ?? array();
+		$attachment_id = (int) ( $slide['attachment_id'] ?? 0 );
+		if ( $attachment_id && 'attachment' === get_post_type( $attachment_id ) ) {
+			$alt = trim( (string) ( $slide['alt'] ?? '' ) );
+			if ( '' === $alt ) {
+				$alt = trim( (string) get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) );
+			}
+			$items[] = array(
+				'url' => wp_get_attachment_url( $attachment_id ),
+				'alt' => '' !== $alt ? $alt : 'Perhiasan Verena Jewellery',
+			);
+			continue;
+		}
+		$abs_path = get_template_directory() . '/' . $default['file'];
+		$items[]  = array(
+			'url' => file_exists( $abs_path ) ? verena_asset_url( $default['file'] ) : get_template_directory_uri() . '/assets/img/hero-placeholder.png',
+			'alt' => $default['alt'],
+		);
+	}
+	return $items;
+}
+
 require_once get_template_directory() . '/inc/template-helpers.php';

@@ -8,10 +8,10 @@
  * rather than shared, so this page can be edited in isolation from that one.
  *
  * Perhiasan items price directly off the "Jual Emas (Kadar)" Google Sheet
- * tab as a lower/upper Rp-per-gram range (see
- * verena_get_buyback_karat_data()). Logam Mulia items price off the same
- * cached bullion sheet data (and the same buyback figures) as the
- * Antam/Emasku/UBS bullion checkout pages — brand+year selects which rows,
+ * tab as a single Rp-per-gram price (see verena_get_buyback_karat_data()).
+ * Logam Mulia items price off the same cached bullion sheet data (and the
+ * same buyback figures) as the Antam/Emasku/UBS bullion checkout pages —
+ * brand+year selects which rows,
  * gram selects the row, never a separate/typed-in source. The WhatsApp
  * button is the only call to action — no separate "save estimate" /
  * lead-capture step.
@@ -24,31 +24,29 @@ if ( ! defined( 'ABSPATH' ) ) {
 get_header();
 
 // Perhiasan (jewellery) karat prices come directly from the "Jual Emas
-// (Kadar)" Google Sheet tab as a lower/upper Rp-per-gram range (see
+// (Kadar)" Google Sheet tab as a single Rp-per-gram price (see
 // verena_get_buyback_karat_data() / inc/buyback-karat-sheet-sync.php) — a
 // direct per-karat lookup.
 $karat_sheet = verena_get_buyback_karat_data();
 $karats      = $karat_sheet['karats'];
 
 $karat_options = array();
-foreach ( $karats as $label => $range ) {
-	if ( null === $range['lower'] && null === $range['upper'] ) {
+foreach ( $karats as $label => $price ) {
+	if ( null === $price ) {
 		continue;
 	}
 	$karat_options[] = array(
 		'label'   => $label,
-		'lower'   => $range['lower'],
-		'upper'   => $range['upper'],
+		'price'   => $price,
 		'display' => $label,
 	);
 }
 // Customers who don't know their karat: priced as an indicative ~14K until
 // checked for free in-store, same idea as the old "Tidak yakin" option.
-if ( isset( $karats['14K'] ) ) {
+if ( isset( $karats['14K'] ) && null !== $karats['14K'] ) {
 	$karat_options[] = array(
 		'label'   => 'Tidak Yakin (~14K)',
-		'lower'   => $karats['14K']['lower'],
-		'upper'   => $karats['14K']['upper'],
+		'price'   => $karats['14K'],
 		'display' => 'Tidak Yakin (~14K) — dicek gratis di toko',
 	);
 }
@@ -86,6 +84,45 @@ $brand_options  = array(
 		'year'  => null,
 	),
 );
+
+// 1-gram buyback price per brand, for the summary table next to the
+// calculator — Antam broken out by year tier (2026/2025/2021-2024), same as
+// the calculator's own Merek dropdown, since buyback differs by year. Full
+// gram-by-gram, all-year pricing lives on the Logam Mulia page, linked below
+// that table.
+$bullion_1g_rows = array(
+	'antam'  => array(
+		'2026'      => null,
+		'2025'      => null,
+		'2021-2024' => null,
+	),
+	'emasku' => null,
+	'ubs'    => null,
+);
+foreach ( $bullion_sheet['antam'] ?? array() as $row ) {
+	if ( 1 === (int) $row['gram'] ) {
+		foreach ( array( '2026', '2025', '2021-2024' ) as $year ) {
+			$bullion_1g_rows['antam'][ $year ] = $row[ $year ]['buyback'] ?? null;
+		}
+		break;
+	}
+}
+foreach ( array( 'emasku', 'ubs' ) as $brand_key ) {
+	foreach ( $bullion_sheet[ $brand_key ] ?? array() as $row ) {
+		if ( 1 === (int) $row['gram'] ) {
+			$bullion_1g_rows[ $brand_key ] = $row['buyback'] ?? null;
+			break;
+		}
+	}
+}
+$bullion_1g_options = array(
+	array( 'label' => 'Antam 2026', 'price' => $bullion_1g_rows['antam']['2026'] ),
+	array( 'label' => 'Antam 2025', 'price' => $bullion_1g_rows['antam']['2025'] ),
+	array( 'label' => 'Antam 2021-2024', 'price' => $bullion_1g_rows['antam']['2021-2024'] ),
+	array( 'label' => 'Emasku', 'price' => $bullion_1g_rows['emasku'] ),
+	array( 'label' => 'UBS', 'price' => $bullion_1g_rows['ubs'] ),
+);
+$bullion_changed_at = ! empty( $bullion_sheet['changed_at'] ) ? max( $bullion_sheet['changed_at'] ) : null;
 
 $initial_items = array(
 	array(
@@ -179,27 +216,40 @@ while ( have_posts() ) : the_post();
 			</details>
 
 			<!-- Paxel pickup partnership -->
-			<div class="calc-edu" style="padding:24px 20px;">
+			<div class="calc-edu paxel-partner" style="padding:24px 20px; background:linear-gradient(135deg, #FFF1E2 0%, #F7C9A2 50%, #EFA97A 100%); border-color:rgba(239,169,122,0.45);">
 				<div class="delivery-journey" style="justify-content:center;" aria-hidden="true">
 					<div class="delivery-journey__icon">
-						<svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 11l8-7 8 7" stroke="#C9A24B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9h12v-9" stroke="#C9A24B" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 19v-5h4v5" stroke="#C9A24B" stroke-width="1.5" stroke-linejoin="round"/></svg>
+						<svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 11l8-7 8 7" stroke="#E8B54A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9h12v-9" stroke="#E8B54A" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 19v-5h4v5" stroke="#E8B54A" stroke-width="1.5" stroke-linejoin="round"/></svg>
 					</div>
 					<span class="delivery-journey__line"></span>
 					<div class="delivery-journey__icon">
-						<svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 7h11v9H2z" stroke="#C9A24B" stroke-width="1.5" stroke-linejoin="round"/><path d="M13 10h4l4 3v3h-2" stroke="#C9A24B" stroke-width="1.5" stroke-linejoin="round"/><circle cx="6" cy="18" r="1.6" stroke="#C9A24B" stroke-width="1.5"/><circle cx="17" cy="18" r="1.6" stroke="#C9A24B" stroke-width="1.5"/><path d="M2 16h1M17 16h-4" stroke="#C9A24B" stroke-width="1.5"/></svg>
+						<svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 7h11v9H2z" stroke="#E8B54A" stroke-width="1.5" stroke-linejoin="round"/><path d="M13 10h4l4 3v3h-2" stroke="#E8B54A" stroke-width="1.5" stroke-linejoin="round"/><circle cx="6" cy="18" r="1.6" stroke="#E8B54A" stroke-width="1.5"/><circle cx="17" cy="18" r="1.6" stroke="#E8B54A" stroke-width="1.5"/><path d="M2 16h1M17 16h-4" stroke="#E8B54A" stroke-width="1.5"/></svg>
 					</div>
 					<span class="delivery-journey__line"></span>
 					<div class="delivery-journey__icon">
-						<img src="<?php echo esc_url( verena_asset_url( 'assets/img/verena-logo-stacked.png' ) ); ?>" alt="Verena Jewellery" style="width:36px; height:36px; object-fit:contain;" />
+						<?php
+						$logo_mark_file = 'verena-logo-mark-black.png';
+						$logo_mark_path = get_template_directory() . '/assets/img/' . $logo_mark_file;
+						?>
+						<?php if ( file_exists( $logo_mark_path ) ) : ?>
+							<span
+								class="icon-mask"
+								role="img"
+								aria-label="Verena Jewellery"
+								style="width:48px; height:48px; background-color:#E8B54A; -webkit-mask-image:url(<?php echo esc_url( verena_asset_url( 'assets/img/' . $logo_mark_file ) ); ?>); mask-image:url(<?php echo esc_url( verena_asset_url( 'assets/img/' . $logo_mark_file ) ); ?>);"
+							></span>
+						<?php else : ?>
+							<img src="<?php echo esc_url( verena_asset_url( 'assets/img/verena-logo-stacked.png' ) ); ?>" alt="Verena Jewellery" style="width:48px; height:48px; object-fit:contain;" />
+						<?php endif; ?>
 					</div>
 				</div>
-				<h3 class="text-center" style="margin:0 0 10px;">Kami Jemput Langsung dari Rumah Anda</h3>
-				<p class="text-center text-muted" style="margin:0;">Verena Jewellery bekerja sama dengan Paxel untuk menjemput emas Anda dengan aman, langsung dari rumah Anda — tanpa perlu repot datang ke toko.</p>
+				<h3 class="text-center" style="margin:0 0 16px; font-style:italic; font-size:clamp(1.5rem, 2.6vw, 2.1rem); font-weight:500; color:var(--ink);">Kami Jemput Langsung dari Rumah Anda</h3>
+				<p class="text-center text-muted" style="margin:0 auto; max-width:520px; font-size:15px; font-style:normal;">Verena Jewellery bekerja sama dengan Paxel untuk menjemput emas Anda dengan aman, langsung dari rumah Anda — tanpa perlu repot datang ke toko.</p>
 			</div>
 
 			<div class="calc-title-divider">
 				<span class="calc-title-divider__line"></span>
-				<h3>Hitung Nilai Total Emas Anda</h3>
+				<h3>Hitung Total Nilai Emas Anda</h3>
 				<span class="calc-title-divider__line"></span>
 			</div>
 
@@ -231,7 +281,7 @@ while ( have_posts() ) : the_post();
 										</div>
 										<div class="form-field mb-0">
 											<label>Kadar Emas</label>
-											<select x-model="item.purity_label">
+											<select x-model="item.purity_label" x-init="$nextTick(() => { $el.value = item.purity_label; })">
 												<template x-for="option in purityOptions" :key="option.label">
 													<option :value="option.label" x-text="option.display"></option>
 												</template>
@@ -257,7 +307,7 @@ while ( have_posts() ) : the_post();
 									<div class="calc-fields calc-fields--triple">
 										<div class="form-field mb-0">
 											<label>Merek</label>
-											<select x-model="item.brand" @change="item.gram = ''">
+											<select x-model="item.brand" @change="if ( ! lmGrams( item ).some( ( g ) => Number( g ) === Number( item.gram ) ) ) { item.gram = ''; }">
 												<option value="">Pilih merek</option>
 												<template x-for="option in brandOptions" :key="option.label">
 													<option :value="option.label" x-text="option.label"></option>
@@ -265,9 +315,9 @@ while ( have_posts() ) : the_post();
 											</select>
 										</div>
 										<div class="form-field mb-0">
-											<label>Ukuran (gram)</label>
-											<select x-model="item.gram">
-												<option value="">Pilih</option>
+											<label>Berat (gram)</label>
+											<select x-model="item.gram" :disabled="! item.brand">
+												<option value="" x-text="item.brand ? 'Pilih' : 'Pilih merek dulu'"></option>
 												<template x-for="g in lmGrams(item)" :key="g">
 													<option :value="g" x-text="formatGram(g) + ' gr'"></option>
 												</template>
@@ -284,22 +334,20 @@ while ( have_posts() ) : the_post();
 
 							<div class="calc-item__foot">
 								<span class="calc-item__foot-label">Perkiraan nilai</span>
-								<span class="calc-item__value" x-text="formatRange(rangeFor(item))"></span>
+								<span class="calc-item__value" x-text="formatRp(valueFor(item))"></span>
 							</div>
 						</div>
 					</template>
 
 					<button type="button" class="btn btn-outline calc-add" @click="addItem()" x-show="items.length < maxItems">+ Tambah Emas</button>
-				</div>
 
-				<!-- RIGHT: sticky total + WhatsApp -->
-				<div class="calc-summary">
+					<!-- Total + WhatsApp, below the item list -->
 					<div class="calc-summary-card">
 						<h3>Estimasi Nilai Emas Anda</h3>
 						<p class="calc-sub"><span x-text="validItems.length"></span> item &middot; harga buyback hari ini</p>
 						<div class="calc-total-big" x-text="formattedTotal"></div>
 						<p class="calc-subtotals">
-							Perhiasan: <strong x-text="formatRange(subtotalPerhiasanRange)"></strong><br>
+							Perhiasan: <strong x-text="formatRp(subtotalPerhiasan)"></strong><br>
 							Logam Mulia: <strong x-text="formatRp(subtotalLm)"></strong>
 						</p>
 						<p class="calc-disclaimer" x-text="disclaimer"></p>
@@ -311,6 +359,69 @@ while ( have_posts() ) : the_post();
 							</a>
 						</div>
 					</div>
+				</div>
+
+				<!-- RIGHT: bullion + karat price reference tables, formatted like the Logam Mulia tables -->
+				<div class="calc-summary">
+					<!-- Bullion 1-gram buyback summary; full gram-by-gram chart lives on the Logam Mulia page -->
+					<div class="table-scroll mb-2">
+						<table class="price-table">
+							<thead>
+								<tr>
+									<th>Logam Mulia</th>
+									<th>Harga Buyback</th>
+								</tr>
+							</thead>
+							<tbody>
+								<?php foreach ( $bullion_1g_options as $option ) : ?>
+									<tr>
+										<td><?php echo esc_html( $option['label'] ); ?></td>
+										<td><?php echo null !== $option['price'] ? esc_html( verena_format_idr( $option['price'] ) ) : '—'; ?></td>
+									</tr>
+								<?php endforeach; ?>
+							</tbody>
+						</table>
+					</div>
+					<p class="text-muted" style="font-size:0.85rem; margin:0 0 10px; padding-top:10px;">Harga Buyback Logam Mulia berbeda untuk setiap gramasi:</p>
+					<p style="margin:0 0 16px;">
+						<a href="<?php echo esc_url( verena_page_url( 'bullion' ) ); ?>" class="btn btn-gold btn-sm">Lihat Tabel Lengkap Logam Mulia</a>
+					</p>
+					<?php if ( $bullion_changed_at ) : ?>
+						<p class="text-muted" style="font-size:0.85rem;">Harga terakhir diperbarui: <?php echo esc_html( wp_date( 'j F Y, H:i', $bullion_changed_at, new DateTimeZone( 'Asia/Jakarta' ) ) . ' WIB' ); ?></p>
+					<?php endif; ?>
+
+					<?php if ( empty( $karat_options ) ) : ?>
+						<p class="text-muted" style="margin-top:var(--space-3);">Harga belum tersedia saat ini.</p>
+					<?php else : ?>
+						<div class="table-scroll" style="margin-top:var(--space-3); margin-bottom:8px;">
+							<table class="price-table">
+								<thead>
+									<tr>
+										<th>Kadar</th>
+										<th>Harga Buyback</th>
+									</tr>
+								</thead>
+								<tbody>
+									<?php foreach ( $karat_options as $option ) : ?>
+										<?php if ( 'Tidak Yakin (~14K)' === $option['label'] ) : continue; endif; ?>
+										<tr>
+											<td><?php echo esc_html( $option['label'] ); ?></td>
+											<td><?php echo esc_html( verena_format_idr( $option['price'] ) ); ?></td>
+										</tr>
+									<?php endforeach; ?>
+								</tbody>
+							</table>
+						</div>
+						<?php
+						// "Last changed" across all karats — matches the same karat prices
+						// shown in the table above, not just the last time the sheet was
+						// polled (see verena_get_buyback_karat_data()'s per-karat changed_at).
+						$karat_changed_at = ! empty( $karat_sheet['changed_at'] ) ? max( $karat_sheet['changed_at'] ) : null;
+						?>
+						<?php if ( $karat_changed_at ) : ?>
+							<p class="text-muted" style="font-size:0.85rem;">Harga terakhir diperbarui: <?php echo esc_html( wp_date( 'j F Y, H:i', $karat_changed_at, new DateTimeZone( 'Asia/Jakarta' ) ) . ' WIB' ); ?></p>
+						<?php endif; ?>
+					<?php endif; ?>
 				</div>
 			</div>
 
@@ -367,7 +478,7 @@ while ( have_posts() ) : the_post();
 							if ( ! row ) { return 0; }
 							const perUnit = option.year ? row[ option.year ].buyback : row.buyback;
 							if ( null === perUnit || undefined === perUnit ) { return 0; }
-							return Math.round( perUnit * qty / 100 ) * 100;
+							return Math.round( perUnit * qty );
 						},
 						gramsFor( item ) {
 							if ( item.category === 'lm' ) {
@@ -375,49 +486,29 @@ while ( have_posts() ) : the_post();
 							}
 							return parseFloat( item.weight_grams ) || 0;
 						},
-						// Perhiasan: direct per-karat lower/upper Rp-per-gram lookup from the
-						// "Jual Emas (Kadar)" sheet — a real range, not a computed fraction.
-						// Logam Mulia items report the same single value as both ends of the
-						// range so totals can sum both categories uniformly.
-						rangeFor( item ) {
+						// Perhiasan: direct per-karat Rp-per-gram lookup from the "Jual Emas
+						// (Kadar)" sheet. Logam Mulia items use lmValue() directly.
+						valueFor( item ) {
 							if ( item.category === 'lm' ) {
-								const val = this.lmValue( item );
-								return { low: val, high: val };
+								return this.lmValue( item );
 							}
 							const grams = this.gramsFor( item );
 							const option = this.purityOptions.find( ( o ) => o.label === item.purity_label );
-							if ( grams <= 0 || ! option || null === option.lower || null === option.upper ) {
-								return { low: 0, high: 0 };
+							if ( grams <= 0 || ! option || null === option.price ) {
+								return 0;
 							}
-							const round100 = ( n ) => Math.round( n / 100 ) * 100;
-							return {
-								low: round100( grams * option.lower ),
-								high: round100( grams * option.upper ),
-							};
+							return Math.round( grams * option.price );
 						},
 						get validItems() { return this.items.filter( ( it ) => this.gramsFor( it ) > 0 ); },
-						get totalRange() {
-							return this.validItems.reduce( ( acc, it ) => {
-								const r = this.rangeFor( it );
-								acc.low += r.low;
-								acc.high += r.high;
-								return acc;
-							}, { low: 0, high: 0 } );
+						get total() {
+							return this.validItems.reduce( ( sum, it ) => sum + this.valueFor( it ), 0 );
 						},
-						get subtotalPerhiasanRange() {
-							return this.validItems.filter( ( it ) => it.category !== 'lm' ).reduce( ( acc, it ) => {
-								const r = this.rangeFor( it );
-								acc.low += r.low;
-								acc.high += r.high;
-								return acc;
-							}, { low: 0, high: 0 } );
+						get subtotalPerhiasan() {
+							return this.validItems.filter( ( it ) => it.category !== 'lm' ).reduce( ( sum, it ) => sum + this.valueFor( it ), 0 );
 						},
 						get subtotalLm() { return this.validItems.filter( ( it ) => it.category === 'lm' ).reduce( ( s, it ) => s + this.lmValue( it ), 0 ); },
 						formatRp( n ) { return 'Rp' + ( n || 0 ).toLocaleString( 'id-ID' ); },
-						formatRange( range ) {
-							return range.low === range.high ? this.formatRp( range.low ) : this.formatRp( range.low ) + ' – ' + this.formatRp( range.high );
-						},
-						get formattedTotal() { return this.formatRange( this.totalRange ); },
+						get formattedTotal() { return this.formatRp( this.total ); },
 
 						get sellWaLink() {
 							const lines = [ 'Halo Verena Jewellery, saya ingin jual emas berikut:' ];
@@ -428,7 +519,7 @@ while ( have_posts() ) : the_post();
 									? ( ( it.gram || '?' ) + ' gr x' + ( it.qty || 1 ) )
 									: ( this.gramsFor( it ) + ' gr, kadar ' + it.purity_label );
 								const desc = it.category === 'lm' ? ( it.brand || cat ) : ( it.description || cat );
-								lines.push( '- ' + desc + ' (' + cat + '): ' + detail + ' (~' + this.formatRange( this.rangeFor( it ) ) + ')' );
+								lines.push( '- ' + desc + ' (' + cat + '): ' + detail + ' (~' + this.formatRp( this.valueFor( it ) ) + ')' );
 							} );
 							if ( this.validItems.length > maxLines ) {
 								lines.push( '...dan ' + ( this.validItems.length - maxLines ) + ' item lainnya.' );
