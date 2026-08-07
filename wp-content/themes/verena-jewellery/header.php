@@ -96,14 +96,11 @@ $wa_nav   = verena_wa_url( 'Halo Verena Jewellery, saya ingin bertanya tentang p
 		<?php if ( verena_page_is_published( 'repairs' ) ) : ?>
 			<a href="<?php echo esc_url( verena_page_url( 'repairs' ) ); ?>">Servis &amp; Perbaikan</a>
 		<?php endif; ?>
-		<?php if ( verena_page_is_published( 'about' ) || verena_page_is_published( 'contact' ) ) : ?>
-			<p class="mobile-nav__label">Lainnya</p>
-			<?php if ( verena_page_is_published( 'about' ) ) : ?>
-				<a href="<?php echo esc_url( verena_page_url( 'about' ) ); ?>">Tentang Kami</a>
-			<?php endif; ?>
-			<?php if ( verena_page_is_published( 'contact' ) ) : ?>
-				<a href="<?php echo esc_url( verena_page_url( 'contact' ) ); ?>">Kontak</a>
-			<?php endif; ?>
+		<?php if ( verena_page_is_published( 'about' ) ) : ?>
+			<a href="<?php echo esc_url( verena_page_url( 'about' ) ); ?>">Tentang Kami</a>
+		<?php endif; ?>
+		<?php if ( verena_page_is_published( 'contact' ) ) : ?>
+			<a href="<?php echo esc_url( verena_page_url( 'contact' ) ); ?>">Kontak</a>
 		<?php endif; ?>
 	</nav>
 </header>

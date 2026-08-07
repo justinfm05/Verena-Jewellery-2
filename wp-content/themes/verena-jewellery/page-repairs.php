@@ -24,14 +24,14 @@ $repair_options = array(
 while ( have_posts() ) : the_post();
 	?>
 	<main class="container section section-narrow">
-		<div class="text-center" style="margin-bottom:var(--space-4);">
+		<div class="text-center repairs-intro">
 			<p class="eyebrow">Servis &amp; Perbaikan</p>
 			<h1><?php the_title(); ?></h1>
 		</div>
 		<div class="stack"><?php the_content(); ?></div>
 
 		<div
-			class="service-card mt-4 text-center"
+			class="service-card repairs-form text-center"
 			x-data="verenaRepairChips(<?php echo esc_attr( wp_json_encode( array( 'waNumber' => verena_whatsapp_number(), 'baseMessage' => verena_wa_message_repair() ) ) ); ?>)"
 		>
 			<h3>Bagaimana Kami Bisa Membantu?</h3>

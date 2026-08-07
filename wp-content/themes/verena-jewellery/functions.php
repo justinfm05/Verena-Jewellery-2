@@ -39,6 +39,20 @@ add_action( 'after_setup_theme', 'verena_theme_setup' );
  * for the calculator's interactivity (add/remove rows, live totals); it's
  * the only third-party runtime dependency in the theme.
  */
+/**
+ * filemtime-based version for a theme-root-relative asset, so editing
+ * style.css or main.js busts the browser's cached copy immediately instead
+ * of waiting for a manual VERENA_THEME_VERSION bump (see verena_asset_url()
+ * for the same pattern applied to hand-written <img>/<video> tags).
+ *
+ * @param string $relative_path Path under the theme root, e.g. 'style.css'.
+ * @return string
+ */
+function verena_theme_asset_version( $relative_path ) {
+	$file_path = get_template_directory() . '/' . ltrim( $relative_path, '/' );
+	return file_exists( $file_path ) ? (string) filemtime( $file_path ) : VERENA_THEME_VERSION;
+}
+
 function verena_enqueue_assets() {
 	// Google Fonts — Cormorant Garamond (display) + Manrope (UI/body).
 	wp_enqueue_style(
@@ -47,7 +61,7 @@ function verena_enqueue_assets() {
 		array(),
 		null
 	);
-	wp_enqueue_style( 'verena-style', get_stylesheet_uri(), array( 'verena-fonts' ), VERENA_THEME_VERSION );
+	wp_enqueue_style( 'verena-style', get_stylesheet_uri(), array( 'verena-fonts' ), verena_theme_asset_version( 'style.css' ) );
 
 	wp_enqueue_script(
 		'alpinejs',
@@ -61,7 +75,7 @@ function verena_enqueue_assets() {
 		'verena-main',
 		get_template_directory_uri() . '/assets/js/main.js',
 		array(),
-		VERENA_THEME_VERSION,
+		verena_theme_asset_version( 'assets/js/main.js' ),
 		true
 	);
 }
@@ -371,7 +385,7 @@ function verena_get_showcase_media() {
  */
 function verena_get_hero_slides() {
 	$defaults = array(
-		array( 'file' => 'assets/img/hero-necklace.jpg', 'alt' => 'Model mengenakan kalung liontin hati emas' ),
+		array( 'file' => 'assets/img/hero-slide-1.jpg', 'alt' => 'Model mengenakan kalung liontin hati emas' ),
 		array( 'file' => 'assets/img/hero-slide-2.jpg', 'alt' => 'Anting emas dengan baguette diamond' ),
 		array( 'file' => 'assets/img/hero-slide-3.jpg', 'alt' => 'Cincin dan anting emas rose gold motif anyaman' ),
 		array( 'file' => 'assets/img/hero-slide-4.jpg', 'alt' => 'Kalung dan cincin emas rose gold model peniti' ),

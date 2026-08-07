@@ -124,6 +124,76 @@ $bullion_1g_options = array(
 );
 $bullion_changed_at = ! empty( $bullion_sheet['changed_at'] ) ? max( $bullion_sheet['changed_at'] ) : null;
 
+// Bullion + Kadar reference tables, captured once and echoed in two spots —
+// their normal position inside the calculator's right column (desktop/
+// tablet), and again right below the intro text (phone only, hidden the
+// other way around per breakpoint via CSS — see .lm-tables-mobile-top /
+// .lm-tables-desktop). Captured ahead of the post loop since it only
+// depends on the sheet data above, not the_post().
+ob_start();
+?>
+<?php if ( empty( $karat_options ) ) : ?>
+	<p class="text-muted">Harga belum tersedia saat ini.</p>
+<?php else : ?>
+	<div class="table-scroll mb-2">
+		<table class="price-table">
+			<thead>
+				<tr>
+					<th>Kadar</th>
+					<th>Harga Buyback</th>
+				</tr>
+			</thead>
+			<tbody>
+				<?php foreach ( $karat_options as $option ) : ?>
+					<?php if ( 'Tidak Yakin (~14K)' === $option['label'] ) : continue; endif; ?>
+					<tr>
+						<td><?php echo esc_html( $option['label'] ); ?></td>
+						<td><?php echo esc_html( verena_format_idr( $option['price'] ) ); ?></td>
+					</tr>
+				<?php endforeach; ?>
+			</tbody>
+		</table>
+	</div>
+	<?php
+	// "Last changed" across all karats — matches the same karat prices
+	// shown in the table above, not just the last time the sheet was
+	// polled (see verena_get_buyback_karat_data()'s per-karat changed_at).
+	$karat_changed_at = ! empty( $karat_sheet['changed_at'] ) ? max( $karat_sheet['changed_at'] ) : null;
+	?>
+	<?php if ( $karat_changed_at ) : ?>
+		<p class="text-muted" style="font-size:0.85rem;">Harga terakhir diperbarui: <?php echo esc_html( wp_date( 'j F Y, H:i', $karat_changed_at, new DateTimeZone( 'Asia/Jakarta' ) ) . ' WIB' ); ?></p>
+	<?php endif; ?>
+<?php endif; ?>
+
+<!-- Bullion 1-gram buyback summary; full gram-by-gram chart lives on the Logam Mulia page -->
+<div class="table-scroll" style="margin-top:var(--space-3); margin-bottom:8px;">
+	<table class="price-table">
+		<thead>
+			<tr>
+				<th>Logam Mulia</th>
+				<th>Harga Buyback</th>
+			</tr>
+		</thead>
+		<tbody>
+			<?php foreach ( $bullion_1g_options as $option ) : ?>
+				<tr>
+					<td><?php echo esc_html( $option['label'] ); ?></td>
+					<td><?php echo null !== $option['price'] ? esc_html( verena_format_idr( $option['price'] ) ) : '—'; ?></td>
+				</tr>
+			<?php endforeach; ?>
+		</tbody>
+	</table>
+</div>
+<p class="text-muted" style="font-size:0.85rem; margin:0 0 10px; padding-top:10px;">Harga Buyback Logam Mulia berbeda untuk setiap gramasi:</p>
+<p style="margin:0 0 16px;">
+	<a href="<?php echo esc_url( verena_page_url( 'bullion' ) ); ?>" class="btn btn-gold btn-sm">Lihat Tabel Lengkap Logam Mulia</a>
+</p>
+<?php if ( $bullion_changed_at ) : ?>
+	<p class="text-muted" style="font-size:0.85rem;">Harga terakhir diperbarui: <?php echo esc_html( wp_date( 'j F Y, H:i', $bullion_changed_at, new DateTimeZone( 'Asia/Jakarta' ) ) . ' WIB' ); ?></p>
+<?php endif; ?>
+<?php
+$lm_kadar_tables_html = ob_get_clean();
+
 $initial_items = array(
 	array(
 		'category'     => 'perhiasan',
@@ -165,8 +235,21 @@ while ( have_posts() ) : the_post();
 			<p class="eyebrow">Jual Emas Anda</p>
 			<h1><?php the_title(); ?></h1>
 			<div class="stack"><?php the_content(); ?></div>
-			<p class="text-muted">Tambahkan perhiasan (termasuk emas patah/rongsokan) atau logam mulia Anda untuk melihat estimasi nilainya di kadar berapa pun — lalu chat langsung dengan Verena lewat WhatsApp.</p>
+			<div class="jual-emas-why">
+				<h3>Mengapa harus jual di Verena?</h3>
+				<ol class="jual-emas-why__list">
+					<li><strong>Harga terbaik</strong> sesuai harga pasar harian.</li>
+					<li><strong>Aman, transparan, dan terpercaya</strong>: menggunakan mesin test kadar modern XRF dan Sigma.</li>
+					<li><strong>Langsung dibayar cepat</strong> setelah pengecekan.</li>
+				</ol>
+			</div>
+			<div class="jual-emas-jump-links">
+				<a href="#jual-emas-calculator" class="btn btn-outline btn-sm">Hitung Total Nilai Emas Anda</a>
+			</div>
 		</div>
+
+		<!-- Phone only — tables shown here, right below the intro; hidden on desktop/tablet (they render in their usual spot in the calculator's right column there). -->
+		<div class="lm-tables-mobile-top"><?php echo $lm_kadar_tables_html; // phpcs:ignore -- trusted, built from esc_html()'d/esc_url()'d output above. ?></div>
 
 		<?php if ( empty( $karat_options ) ) : ?>
 			<div class="empty-state">
@@ -174,6 +257,13 @@ while ( have_posts() ) : the_post();
 				<?php verena_whatsapp_button( 'Halo Verena Jewellery, saya ingin jual emas bekas.', 'Tanya via WhatsApp' ); ?>
 			</div>
 		<?php else : ?>
+
+			<!-- Phone only — section title moved above the "how it works" steps; hidden on desktop/tablet (it renders in its usual spot right above the calculator there). -->
+			<div class="calc-title-divider calc-title-divider--mobile" id="jual-emas-calculator">
+				<span class="calc-title-divider__line"></span>
+				<h3>Hitung Total Nilai Emas Anda</h3>
+				<span class="calc-title-divider__line"></span>
+			</div>
 
 			<!-- How to use (3 simple steps) -->
 			<div class="calc-howto">
@@ -216,7 +306,7 @@ while ( have_posts() ) : the_post();
 			</details>
 
 			<!-- Paxel pickup partnership -->
-			<div class="calc-edu paxel-partner" style="padding:24px 20px; background:linear-gradient(135deg, #FFF1E2 0%, #F7C9A2 50%, #EFA97A 100%); border-color:rgba(239,169,122,0.45);">
+			<div class="calc-edu paxel-partner" style="background:linear-gradient(135deg, #FFF1E2 0%, #F7C9A2 50%, #EFA97A 100%); border-color:rgba(239,169,122,0.45);">
 				<div class="delivery-journey" style="justify-content:center;" aria-hidden="true">
 					<div class="delivery-journey__icon">
 						<svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 11l8-7 8 7" stroke="#E8B54A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9h12v-9" stroke="#E8B54A" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 19v-5h4v5" stroke="#E8B54A" stroke-width="1.5" stroke-linejoin="round"/></svg>
@@ -233,13 +323,13 @@ while ( have_posts() ) : the_post();
 						?>
 						<?php if ( file_exists( $logo_mark_path ) ) : ?>
 							<span
-								class="icon-mask"
+								class="icon-mask verena-logo-icon"
 								role="img"
 								aria-label="Verena Jewellery"
-								style="width:48px; height:48px; background-color:#E8B54A; -webkit-mask-image:url(<?php echo esc_url( verena_asset_url( 'assets/img/' . $logo_mark_file ) ); ?>); mask-image:url(<?php echo esc_url( verena_asset_url( 'assets/img/' . $logo_mark_file ) ); ?>);"
+								style="background-color:#E8B54A; -webkit-mask-image:url(<?php echo esc_url( verena_asset_url( 'assets/img/' . $logo_mark_file ) ); ?>); mask-image:url(<?php echo esc_url( verena_asset_url( 'assets/img/' . $logo_mark_file ) ); ?>);"
 							></span>
 						<?php else : ?>
-							<img src="<?php echo esc_url( verena_asset_url( 'assets/img/verena-logo-stacked.png' ) ); ?>" alt="Verena Jewellery" style="width:48px; height:48px; object-fit:contain;" />
+							<img src="<?php echo esc_url( verena_asset_url( 'assets/img/verena-logo-stacked.png' ) ); ?>" alt="Verena Jewellery" class="verena-logo-icon" style="object-fit:contain;" />
 						<?php endif; ?>
 					</div>
 				</div>
@@ -247,7 +337,7 @@ while ( have_posts() ) : the_post();
 				<p class="text-center text-muted" style="margin:0 auto; max-width:520px; font-size:15px; font-style:normal;">Verena Jewellery bekerja sama dengan Paxel untuk menjemput emas Anda dengan aman, langsung dari rumah Anda — tanpa perlu repot datang ke toko.</p>
 			</div>
 
-			<div class="calc-title-divider">
+			<div class="calc-title-divider calc-title-divider--desktop">
 				<span class="calc-title-divider__line"></span>
 				<h3>Hitung Total Nilai Emas Anda</h3>
 				<span class="calc-title-divider__line"></span>
@@ -361,67 +451,9 @@ while ( have_posts() ) : the_post();
 					</div>
 				</div>
 
-				<!-- RIGHT: bullion + karat price reference tables, formatted like the Logam Mulia tables -->
-				<div class="calc-summary">
-					<!-- Bullion 1-gram buyback summary; full gram-by-gram chart lives on the Logam Mulia page -->
-					<div class="table-scroll mb-2">
-						<table class="price-table">
-							<thead>
-								<tr>
-									<th>Logam Mulia</th>
-									<th>Harga Buyback</th>
-								</tr>
-							</thead>
-							<tbody>
-								<?php foreach ( $bullion_1g_options as $option ) : ?>
-									<tr>
-										<td><?php echo esc_html( $option['label'] ); ?></td>
-										<td><?php echo null !== $option['price'] ? esc_html( verena_format_idr( $option['price'] ) ) : '—'; ?></td>
-									</tr>
-								<?php endforeach; ?>
-							</tbody>
-						</table>
-					</div>
-					<p class="text-muted" style="font-size:0.85rem; margin:0 0 10px; padding-top:10px;">Harga Buyback Logam Mulia berbeda untuk setiap gramasi:</p>
-					<p style="margin:0 0 16px;">
-						<a href="<?php echo esc_url( verena_page_url( 'bullion' ) ); ?>" class="btn btn-gold btn-sm">Lihat Tabel Lengkap Logam Mulia</a>
-					</p>
-					<?php if ( $bullion_changed_at ) : ?>
-						<p class="text-muted" style="font-size:0.85rem;">Harga terakhir diperbarui: <?php echo esc_html( wp_date( 'j F Y, H:i', $bullion_changed_at, new DateTimeZone( 'Asia/Jakarta' ) ) . ' WIB' ); ?></p>
-					<?php endif; ?>
-
-					<?php if ( empty( $karat_options ) ) : ?>
-						<p class="text-muted" style="margin-top:var(--space-3);">Harga belum tersedia saat ini.</p>
-					<?php else : ?>
-						<div class="table-scroll" style="margin-top:var(--space-3); margin-bottom:8px;">
-							<table class="price-table">
-								<thead>
-									<tr>
-										<th>Kadar</th>
-										<th>Harga Buyback</th>
-									</tr>
-								</thead>
-								<tbody>
-									<?php foreach ( $karat_options as $option ) : ?>
-										<?php if ( 'Tidak Yakin (~14K)' === $option['label'] ) : continue; endif; ?>
-										<tr>
-											<td><?php echo esc_html( $option['label'] ); ?></td>
-											<td><?php echo esc_html( verena_format_idr( $option['price'] ) ); ?></td>
-										</tr>
-									<?php endforeach; ?>
-								</tbody>
-							</table>
-						</div>
-						<?php
-						// "Last changed" across all karats — matches the same karat prices
-						// shown in the table above, not just the last time the sheet was
-						// polled (see verena_get_buyback_karat_data()'s per-karat changed_at).
-						$karat_changed_at = ! empty( $karat_sheet['changed_at'] ) ? max( $karat_sheet['changed_at'] ) : null;
-						?>
-						<?php if ( $karat_changed_at ) : ?>
-							<p class="text-muted" style="font-size:0.85rem;">Harga terakhir diperbarui: <?php echo esc_html( wp_date( 'j F Y, H:i', $karat_changed_at, new DateTimeZone( 'Asia/Jakarta' ) ) . ' WIB' ); ?></p>
-						<?php endif; ?>
-					<?php endif; ?>
+				<!-- RIGHT: bullion + karat price reference tables, formatted like the Logam Mulia tables. Hidden on phone (they show right below the intro instead — see .lm-tables-mobile-top above). -->
+				<div class="calc-summary lm-tables-desktop">
+					<?php echo $lm_kadar_tables_html; // phpcs:ignore -- trusted, built from esc_html()'d/esc_url()'d output above. ?>
 				</div>
 			</div>
 

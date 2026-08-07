@@ -114,6 +114,14 @@ p { margin: 0 0 var(--space-2); }
 	padding: 0 var(--space-3);
 }
 .section { padding: var(--space-5) 0; }
+/* Phone only — more breathing room below the sticky header on every page; desktop/tablet untouched. */
+@media (max-width: 600px) {
+	.section { padding-top: calc(var(--space-5) + 32px); }
+	/* ...except pages with a .page-header band right above — that band
+	   already has its own bottom padding (60px), so the boost above just
+	   double-stacks into an oversized gap (e.g. About, Contact). */
+	.page-header + .section { padding-top: 28px; }
+}
 .section-alt { background: var(--bg-alt); }
 .section-narrow { max-width: 720px; margin: 0 auto; }
 .section-heading { max-width: 640px; margin: 0 auto var(--space-4); }
@@ -130,6 +138,10 @@ p { margin: 0 0 var(--space-2); }
 }
 .text-muted { color: var(--text-muted); }
 .text-center { text-align: center; }
+/* Phone only — page description text matches the homepage hero body size; desktop/tablet untouched. Inline font-size overrides (fine-print captions etc.) still win. */
+@media (max-width: 600px) {
+	.text-muted, .stack p, .jual-emas-why__list { font-size: 14px; line-height: 1.6; }
+}
 
 /* ------------------------------------------------------------------ */
 /* Gold price ticker                                                   */
@@ -164,6 +176,11 @@ p { margin: 0 0 var(--space-2); }
 .gold-ticker__note { font-size: 12px; color: var(--olive-2); margin: 0; text-align: center; }
 .gold-ticker__link { color: var(--gold); text-decoration: underline; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
 .gold-ticker__link:hover { color: var(--gold-bright); }
+/* Phone only — less top padding on the ticker; desktop/tablet untouched. */
+@media (max-width: 600px) {
+	.gold-ticker__inner { padding-top: 4px; row-gap: 4px; }
+	.gold-ticker__rates { row-gap: 4px; }
+}
 
 /* ------------------------------------------------------------------ */
 /* Header / navigation                                                 */
@@ -278,15 +295,6 @@ p { margin: 0 0 var(--space-2); }
 	padding: 10px 0;
 }
 .mobile-nav a:hover { color: var(--gold-bright); }
-.mobile-nav__label {
-	font-family: var(--font-body);
-	font-size: 11px;
-	font-weight: 700;
-	letter-spacing: 0.1em;
-	text-transform: uppercase;
-	color: var(--gold);
-	margin: 16px 0 4px;
-}
 @media (min-width: 900px) { .mobile-nav { display: none !important; } }
 
 /* ------------------------------------------------------------------ */
@@ -411,6 +419,16 @@ p { margin: 0 0 var(--space-2); }
 @media (max-width: 420px) {
 	.hero__actions-row { flex-direction: column; gap: 14px; }
 }
+/* Phone only — scale the whole hero text block down; desktop/tablet untouched. */
+@media (max-width: 600px) {
+	.hero__inner { padding: 40px 20px 32px; }
+	.hero .eyebrow { font-size: 10.5px; margin-bottom: 14px; }
+	.hero h1 { font-size: clamp(26px, 8vw, 34px); margin: 0 0 14px; }
+	.hero__body { font-size: 14px; line-height: 1.6; margin: 0 0 22px; }
+	.hero__actions { gap: 6px; }
+	.hero__actions-row { gap: 6px; }
+	.hero__actions .btn { padding: 12px 18px; font-size: 0.78rem; }
+}
 
 /* ------------------------------------------------------------------ */
 /* Interior page header (forest band under the nav)                    */
@@ -446,6 +464,15 @@ p { margin: 0 0 var(--space-2); }
 	display: flex; align-items: center; justify-content: center;
 }
 .delivery-journey__line { width: 36px; height: 1px; background: rgba(201, 162, 75, 0.4); }
+.verena-logo-icon { width: 48px; height: 48px; }
+/* Phone only — smaller Paxel icon row; shared by the homepage and Jual Emas page, so both stay in sync. Desktop/tablet untouched. */
+@media (max-width: 600px) {
+	.delivery-journey { gap: 8px; margin-bottom: 18px; }
+	.delivery-journey__icon { width: 52px; height: 52px; }
+	.delivery-journey__icon svg { width: 24px; height: 24px; }
+	.delivery-journey__line { width: 20px; }
+	.verena-logo-icon { width: 34px; height: 34px; }
+}
 .icon-mask {
 	display: inline-block;
 	-webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
@@ -456,6 +483,9 @@ p { margin: 0 0 var(--space-2); }
 	position: relative;
 	overflow: hidden;
 	isolation: isolate;
+}
+.calc-edu.paxel-partner {
+	padding: 24px 20px;
 }
 .paxel-partner::before {
 	content: '';
@@ -491,6 +521,14 @@ p { margin: 0 0 var(--space-2); }
 .delivery-stat svg { margin-bottom: 12px; }
 .delivery-stat strong { font-family: var(--font-body); font-weight: 700; font-size: 1.4rem; line-height: 1.2; color: var(--gold-bright); text-align: center; }
 .delivery-stat span { font-family: var(--font-body); font-size: 12.5px; font-weight: 600; letter-spacing: 0.03em; color: var(--champagne); margin-top: 10px; }
+/* Phone only — smaller delivery-stat cards; desktop/tablet untouched. */
+@media (max-width: 600px) {
+	.delivery-stats { gap: 10px; margin: 22px 0 4px; }
+	.delivery-stat { min-width: 130px; padding: 16px 14px; border-radius: 10px; }
+	.delivery-stat svg { width: 17px; height: 17px; margin-bottom: 6px; }
+	.delivery-stat strong { font-size: 1.1rem; }
+	.delivery-stat span { font-size: 11px; margin-top: 6px; }
+}
 
 /* ------------------------------------------------------------------ */
 /* Product grid + card                                                 */
@@ -585,6 +623,17 @@ p { margin: 0 0 var(--space-2); }
 .service-card--dark { background: var(--forest); border-color: transparent; }
 .service-card--dark h3 { color: var(--champagne); }
 .service-card--dark p { color: var(--champagne-dim); }
+.repairs-intro { margin-bottom: var(--space-4); }
+.repairs-form { margin-top: var(--space-4); }
+/* Phone only — less gap above the Servis form, more room below it before the footer; desktop/tablet untouched. */
+@media (max-width: 600px) {
+	.repairs-intro { margin-bottom: 20px; }
+	.repairs-form { margin-top: 20px; margin-bottom: 40px; }
+}
+/* Phone only — more room below the About page's contact card, before the footer; desktop/tablet untouched. */
+@media (max-width: 600px) {
+	.about-contact-card { margin-bottom: 40px; }
+}
 
 /* ------------------------------------------------------------------ */
 /* Testimonials                                                        */
@@ -694,6 +743,11 @@ p { margin: 0 0 var(--space-2); }
 }
 .price-table tbody tr:nth-child(even) { background: var(--bg-alt); }
 .price-table tbody tr:hover { background: rgba(201, 162, 75, 0.14); }
+/* Phone only — tighter table padding, smaller price text; desktop/tablet untouched. */
+@media (max-width: 600px) {
+	.price-table th, .price-table td { padding: 0.75rem 0.6rem; }
+	.price-table td { font-size: 0.85rem; }
+}
 
 /* Logam Mulia brand strip — three equal-width badges spanning the full container, so the middle one sits at page-center. */
 .brand-strip { display: grid; grid-template-columns: 1fr; gap: 16px; margin: var(--space-2) 0 var(--space-3); }
@@ -725,6 +779,14 @@ p { margin: 0 0 var(--space-2); }
 .bullion-detail__media .brand-badge:hover { box-shadow: var(--shadow-sm); transform: none; border-color: var(--line-light); }
 .bullion-detail__media .brand-badge img { height: 73px; }
 .bullion-detail__media .brand-badge img[src*="ubs-logo"], .bullion-detail__media .brand-badge img[src*="emasku-logo"] { height: 63px; }
+/* Phone only — smaller brand badges, more breathing room on the sides; desktop/tablet untouched. */
+@media (max-width: 600px) {
+	.container { padding: 0 32px; }
+	.brand-strip { gap: 10px; }
+	.brand-badge { padding: 0.4rem 1.5rem; }
+	.brand-badge img { height: 56px; }
+	.brand-badge img[src*="ubs-logo"], .brand-badge img[src*="emasku-logo"] { height: 46px; }
+}
 
 /* Bullion brand detail page (e.g. Antam) — photo + gram/tahun/harga picker. */
 .bullion-detail { display: grid; grid-template-columns: 1fr; gap: var(--space-4); align-items: start; }
@@ -771,6 +833,16 @@ p { margin: 0 0 var(--space-2); }
 	outline: none;
 	border-color: var(--gold);
 	box-shadow: 0 0 0 3px rgba(201, 162, 75, 0.18);
+}
+/* Phone only — mobile browsers render a native <select> popup that doesn't
+   reliably inherit the field's own font-size, so its option list can look
+   noticeably smaller than the closed field's text; setting it explicitly on
+   <option> fixes that. Also nudges selects to 16px, which avoids iOS Safari
+   auto-zooming the page on focus for fields under that size. Desktop/tablet
+   untouched (their native dropdown rendering doesn't have this issue). */
+@media (max-width: 600px) {
+	.form-field select, .vj-field select, select { font-size: 16px; }
+	option { font-size: 16px; }
 }
 .chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip {
@@ -881,6 +953,10 @@ p { margin: 0 0 var(--space-2); }
 .calc-subtotals { font-size: 13.5px; color: var(--champagne-dim); margin: 8px 0 18px; }
 .calc-subtotals strong { color: var(--champagne); }
 .calc-summary-card .btn-gold { font-size: 1rem; padding: 15px 20px; }
+/* Phone only — more room below the "Estimasi Nilai Emas Anda" card, before the footer; desktop/tablet untouched. */
+@media (max-width: 600px) {
+	.calc-summary-card { margin-bottom: 40px; }
+}
 .calc-disclaimer { font-size: 12.5px; line-height: 1.6; color: var(--olive-2); margin: 16px 0 0; }
 
 /* Calculator — how-to steps + karat education */
@@ -899,10 +975,56 @@ p { margin: 0 0 var(--space-2); }
 .calc-edu__body { padding: 16px 0 20px; font-size: 14px; line-height: 1.7; color: var(--ink-muted); }
 .calc-edu__body p { margin: 0 0 12px; }
 .calc-edu__body strong { color: var(--forest); }
+/* Phone only — smaller howto/FAQ/Paxel boxes; desktop/tablet untouched. */
+@media (max-width: 600px) {
+	.calc-howto { gap: 10px; margin-bottom: 14px; }
+	.calc-howto__step { padding: 12px 14px; }
+	.calc-howto__num { width: 22px; height: 22px; font-size: 12px; margin-bottom: 6px; }
+	.calc-howto__step p { font-size: 13px; }
+	.calc-edu { padding: 0 14px; margin-bottom: 18px; }
+	.calc-edu summary { padding: 12px 0; font-size: 13.5px; gap: 8px; }
+	.calc-edu__body { padding: 10px 0 14px; font-size: 13px; }
+	.calc-edu.paxel-partner { padding: 16px 14px; }
+}
 
 .calc-title-divider { display: flex; align-items: center; gap: 16px; margin: 32px 0 20px; }
 .calc-title-divider__line { flex: 1; height: 1px; background: var(--line-light-strong); }
 .calc-title-divider h3 { margin: 0; font-size: calc(1.15rem + 2px); font-weight: 700; font-style: italic; white-space: nowrap; }
+.jual-emas-why { max-width: 480px; margin: 0 auto; text-align: left; }
+.jual-emas-why h3 { text-align: center; font-style: italic; margin: 0 0 14px; }
+.jual-emas-why__list { margin: 0; padding-left: 22px; color: var(--ink-muted); font-size: 15px; line-height: 1.6; }
+.jual-emas-why__list li { margin-bottom: 8px; }
+.jual-emas-why__list li:last-child { margin-bottom: 0; }
+.jual-emas-why__list strong {
+	background: linear-gradient(90deg, var(--gold-ink) 0%, var(--gold-bright) 100%);
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+	color: transparent;
+}
+/* Phone only — jump-link button to the calculator below; hidden on desktop/tablet. */
+.jual-emas-jump-links { display: none; }
+@media (max-width: 600px) {
+	.jual-emas-jump-links { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 18px; }
+	#jual-emas-calculator { scroll-margin-top: 90px; }
+}
+/* Phone only — "Hitung Total Nilai Emas Anda" title moves above the howto
+   steps; its usual spot right above the calculator is hidden there instead.
+   Desktop/tablet: the reverse (unchanged from before). */
+.calc-title-divider--mobile { display: none; }
+@media (max-width: 600px) {
+	.calc-title-divider--mobile { display: flex; }
+	.calc-title-divider--desktop { display: none; }
+}
+/* Phone only — bullion/Kadar tables move to right below the intro, ahead of
+   the howto/FAQ/Paxel boxes and the calculator; their normal spot in the
+   calculator's right column is hidden there instead. Desktop/tablet: the
+   reverse (unchanged from before). */
+.lm-tables-mobile-top { display: none; }
+@media (max-width: 600px) {
+	.lm-tables-mobile-top { display: block; margin: 0 0 var(--space-4); }
+	.lm-tables-desktop { display: none; }
+}
 .karat-ref { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13.5px; }
 .karat-ref th, .karat-ref td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line-light); }
 .karat-ref th { color: var(--gold-ink); font-family: var(--font-body); text-transform: uppercase; font-size: 11px; letter-spacing: 0.08em; font-weight: 700; }

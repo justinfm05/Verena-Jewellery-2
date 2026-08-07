@@ -29,7 +29,7 @@ while ( have_posts() ) : the_post();
 			</div>
 			<div class="service-card text-center">
 				<p class="card__price" style="font-size:1.8rem;">100%</p>
-				<p class="text-muted mb-0">Transaksi via WhatsApp</p>
+				<p class="text-muted mb-0">Transaksi Online via WhatsApp</p>
 			</div>
 			<div class="service-card text-center">
 				<p class="card__price" style="font-size:1.8rem;">1:1</p>
@@ -37,7 +37,7 @@ while ( have_posts() ) : the_post();
 			</div>
 		</div>
 
-		<div class="service-card mt-4">
+		<div class="service-card mt-4 about-contact-card">
 			<h3>Kunjungi &amp; Hubungi Kami</h3>
 			<p class="text-muted mb-0">📍 <?php echo esc_html( $shop['address'] ); ?></p>
 			<p class="text-muted mb-0">🕒 <?php echo esc_html( $shop['hours'] ); ?></p>
