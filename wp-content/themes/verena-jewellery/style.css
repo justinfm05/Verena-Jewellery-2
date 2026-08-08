@@ -465,7 +465,7 @@ p { margin: 0 0 var(--space-2); }
 }
 .delivery-journey__line { width: 36px; height: 1px; background: rgba(201, 162, 75, 0.4); }
 .verena-logo-icon { width: 48px; height: 48px; }
-/* Phone only — smaller Paxel icon row; shared by the homepage and Jual Emas page, so both stay in sync. Desktop/tablet untouched. */
+/* Phone only — smaller delivery icon row; shared by the homepage and Jual Emas page, so both stay in sync. Desktop/tablet untouched. */
 @media (max-width: 600px) {
 	.delivery-journey { gap: 8px; margin-bottom: 18px; }
 	.delivery-journey__icon { width: 52px; height: 52px; }
@@ -479,31 +479,31 @@ p { margin: 0 0 var(--space-2); }
 	-webkit-mask-position: center; mask-position: center;
 	-webkit-mask-size: contain; mask-size: contain;
 }
-.paxel-partner {
+.pickup-partner {
 	position: relative;
 	overflow: hidden;
 	isolation: isolate;
 }
-.calc-edu.paxel-partner {
+.calc-edu.pickup-partner {
 	padding: 24px 20px;
 }
-.paxel-partner::before {
+.pickup-partner::before {
 	content: '';
 	position: absolute;
 	inset: -40%;
 	background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,236,214,0.45) 30%, transparent 60%);
-	animation: paxel-light-sweep 7s ease-in-out infinite;
+	animation: pickup-light-sweep 7s ease-in-out infinite;
 	pointer-events: none;
 	z-index: 0;
 }
-.paxel-partner > * { position: relative; z-index: 1; }
-@keyframes paxel-light-sweep {
+.pickup-partner > * { position: relative; z-index: 1; }
+@keyframes pickup-light-sweep {
 	0%   { transform: translate(-35%, -25%) scale(1); }
 	50%  { transform: translate(35%, 25%) scale(1.15); }
 	100% { transform: translate(-35%, -25%) scale(1); }
 }
 @media (prefers-reduced-motion: reduce) {
-	.paxel-partner::before { animation: none; }
+	.pickup-partner::before { animation: none; }
 }
 .delivery-stats {
 	display: flex; flex-wrap: wrap; justify-content: center;
@@ -975,7 +975,7 @@ p { margin: 0 0 var(--space-2); }
 .calc-edu__body { padding: 16px 0 20px; font-size: 14px; line-height: 1.7; color: var(--ink-muted); }
 .calc-edu__body p { margin: 0 0 12px; }
 .calc-edu__body strong { color: var(--forest); }
-/* Phone only — smaller howto/FAQ/Paxel boxes; desktop/tablet untouched. */
+/* Phone only — smaller howto/FAQ/pickup boxes; desktop/tablet untouched. */
 @media (max-width: 600px) {
 	.calc-howto { gap: 10px; margin-bottom: 14px; }
 	.calc-howto__step { padding: 12px 14px; }
@@ -984,7 +984,7 @@ p { margin: 0 0 var(--space-2); }
 	.calc-edu { padding: 0 14px; margin-bottom: 18px; }
 	.calc-edu summary { padding: 12px 0; font-size: 13.5px; gap: 8px; }
 	.calc-edu__body { padding: 10px 0 14px; font-size: 13px; }
-	.calc-edu.paxel-partner { padding: 16px 14px; }
+	.calc-edu.pickup-partner { padding: 16px 14px; }
 }
 
 .calc-title-divider { display: flex; align-items: center; gap: 16px; margin: 32px 0 20px; }
@@ -1017,7 +1017,7 @@ p { margin: 0 0 var(--space-2); }
 	.calc-title-divider--desktop { display: none; }
 }
 /* Phone only — bullion/Kadar tables move to right below the intro, ahead of
-   the howto/FAQ/Paxel boxes and the calculator; their normal spot in the
+   the howto/FAQ/pickup boxes and the calculator; their normal spot in the
    calculator's right column is hidden there instead. Desktop/tablet: the
    reverse (unchanged from before). */
 .lm-tables-mobile-top { display: none; }

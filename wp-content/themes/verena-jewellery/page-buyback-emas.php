@@ -305,8 +305,8 @@ while ( have_posts() ) : the_post();
 				</div>
 			</details>
 
-			<!-- Paxel pickup partnership -->
-			<div class="calc-edu paxel-partner" style="background:linear-gradient(135deg, #FFF1E2 0%, #F7C9A2 50%, #EFA97A 100%); border-color:rgba(239,169,122,0.45);">
+			<!-- Home pickup partnership -->
+			<div class="calc-edu pickup-partner" style="background:linear-gradient(135deg, #FFF1E2 0%, #F7C9A2 50%, #EFA97A 100%); border-color:rgba(239,169,122,0.45);">
 				<div class="delivery-journey" style="justify-content:center;" aria-hidden="true">
 					<div class="delivery-journey__icon">
 						<svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 11l8-7 8 7" stroke="#E8B54A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9h12v-9" stroke="#E8B54A" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 19v-5h4v5" stroke="#E8B54A" stroke-width="1.5" stroke-linejoin="round"/></svg>
@@ -334,7 +334,7 @@ while ( have_posts() ) : the_post();
 					</div>
 				</div>
 				<h3 class="text-center" style="margin:0 0 16px; font-style:italic; font-size:clamp(1.5rem, 2.6vw, 2.1rem); font-weight:500; color:var(--ink);">Kami Jemput Langsung dari Rumah Anda</h3>
-				<p class="text-center text-muted" style="margin:0 auto; max-width:520px; font-size:15px; font-style:normal;">Verena Jewellery bekerja sama dengan Paxel untuk menjemput emas Anda dengan aman, langsung dari rumah Anda — tanpa perlu repot datang ke toko.</p>
+				<p class="text-center text-muted" style="margin:0 auto; max-width:520px; font-size:15px; font-style:normal;">Tim Verena Jewellery dapat menjemput emas Anda dengan aman, langsung dari rumah Anda — tanpa perlu repot datang ke toko.</p>
 			</div>
 
 			<div class="calc-title-divider calc-title-divider--desktop">

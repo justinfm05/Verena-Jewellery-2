@@ -74,10 +74,10 @@ while ( have_posts() ) : the_post();
 
 		<p class="form-note" style="margin-bottom:var(--space-3);">
 			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 7h11v9H2z" stroke="#A08B4A" stroke-width="1.5" stroke-linejoin="round"/><path d="M13 10h4l4 3v3h-2" stroke="#A08B4A" stroke-width="1.5" stroke-linejoin="round"/><circle cx="6" cy="18" r="1.6" stroke="#A08B4A" stroke-width="1.5"/><circle cx="17" cy="18" r="1.6" stroke="#A08B4A" stroke-width="1.5"/><path d="M2 16h1M17 16h-4" stroke="#A08B4A" stroke-width="1.5"/></svg>
-			<span>Diantar aman ke rumah Anda via Paxel</span>
+			<span>Diantar aman ke rumah Anda</span>
 		</p>
 
-		<p class="text-muted">Harga kami terjamin paling murah, beli sekarang di Verena Jewellery. Info harga emas akan terkini:</p>
+		<p class="text-muted">Harga kami terjamin kompetitif, beli sekarang di Verena Jewellery. Info harga emas akan terkini:</p>
 
 		<div class="price-table-head mt-4">
 			<h3 style="margin:0;">Antam</h3>

@@ -1,6 +1,6 @@
 <?php
 /**
- * Homepage: hero, Paxel delivery highlight, custom showcase, testimonials,
+ * Homepage: hero, home delivery highlight, custom showcase, testimonials,
  * Instagram feed.
  *
  * @package Verena_Jewellery
@@ -201,7 +201,7 @@ $showcase_items = verena_get_showcase_media();
 	} );
 </script>
 
-<!-- Delivery partnership (Paxel) -->
+<!-- Home delivery highlight -->
 <section class="band band--forest">
 	<div class="band__inner" style="max-width:760px;">
 		<div class="band__head" style="margin-bottom:0;">
@@ -219,7 +219,7 @@ $showcase_items = verena_get_showcase_media();
 				</div>
 			</div>
 			<h2>Diantar Langsung ke Rumah Anda</h2>
-			<p>Verena Jewellery bekerja sama dengan <strong>Paxel</strong> untuk mengirimkan perhiasan dan emas batangan Anda dengan aman, langsung ke rumah Anda.</p>
+			<p>Verena Jewellery mengirimkan perhiasan dan emas batangan Anda dengan aman, langsung ke rumah Anda.</p>
 			<div class="delivery-stats">
 				<div class="delivery-stat">
 					<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" stroke="#C9A24B" stroke-width="1.5" stroke-linejoin="round"/></svg>

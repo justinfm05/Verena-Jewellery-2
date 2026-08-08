@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 $shop      = verena_shop_info();
 $logo_url  = get_template_directory_uri() . '/assets/img/verena-logo-stacked.png';
 $wa_footer = verena_wa_url( 'Halo Verena Jewellery, saya ingin bertanya.' );
-$map_query = get_option( 'verena_map_query', 'ITC Fatmawati Jakarta Selatan' );
+$map_query = get_option( 'verena_map_query', 'Verena Jewellery ITC Fatmawati Jakarta Selatan' );
 ?>
 	<footer class="site-footer">
 		<div class="site-footer__inner">
