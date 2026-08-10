@@ -5,9 +5,15 @@
  * matches this theme's page-{slug}.php template hierarchy convention, same
  * as every other page template.
  *
- * Gram/Tahun dropdowns and the resulting price are driven entirely by the
+ * Tipe/Gram dropdowns and the resulting price are driven entirely by the
  * cached Google Sheet data (verena_get_bullion_sheet_data()) — the exact
  * same numbers shown in the main Logam Mulia table, never a separate source.
+ * Unlike the Logam Mulia overview table (which only ever shows 2026), this
+ * checkout page exposes all 7 Antam types (2026/2025/2021-2024/Non RM
+ * <2020/Antam Press Hijau/Antam Retro Tegak/Antam Retro Tidur) behind the
+ * Tipe picker — a visitor has to actively choose a type before any of those
+ * prices are shown, same "ask via the tool, not passively listed" idea as
+ * the Jual Emas calculator.
  *
  * @package Verena_Jewellery
  */
@@ -19,14 +25,18 @@ get_header();
 $sheet      = verena_get_bullion_sheet_data();
 $antam_rows = $sheet['antam'];
 
-$grams = array();
-foreach ( $antam_rows as $row ) {
-	$grams[] = $row['gram'];
-}
+// Types offered in the Tipe picker, in display order — must match the keys
+// verena_jt_bullion_parse_csv() puts on each Antam row (see
+// inc/bullion-sheet-sync.php in the plugin).
+$antam_types = array( '2026', '2025', '2021-2024', 'Non RM <2020', 'Antam Press Hijau', 'Antam Retro Tegak', 'Antam Retro Tidur' );
 
 while ( have_posts() ) : the_post();
 	?>
 	<main class="container section">
+		<a href="<?php echo esc_url( verena_page_url( 'bullion' ) ); ?>" class="bullion-back-link">
+			<svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			<span>Kembali</span>
+		</a>
 		<div class="text-center section-narrow" style="margin-bottom:var(--space-4);">
 			<p class="eyebrow">Emas Batangan</p>
 			<h1><?php the_title(); ?></h1>
@@ -40,7 +50,7 @@ while ( have_posts() ) : the_post();
 		<?php else : ?>
 			<div
 				class="bullion-detail"
-				x-data="verenaAntamDetail(<?php echo esc_attr( wp_json_encode( array( 'rows' => $antam_rows, 'waNumber' => verena_whatsapp_number() ) ) ); ?>)"
+				x-data="verenaAntamDetail(<?php echo esc_attr( wp_json_encode( array( 'rows' => $antam_rows, 'types' => $antam_types, 'waNumber' => verena_whatsapp_number() ) ) ); ?>)"
 			>
 				<div class="bullion-detail__media">
 					<div class="brand-badge" style="margin-bottom:var(--space-2);">
@@ -51,21 +61,21 @@ while ( have_posts() ) : the_post();
 
 				<div class="bullion-detail__form">
 					<div class="form-field">
-						<label for="antam-gram">Gram</label>
-						<select id="antam-gram" x-model="gram">
-							<option value="">Pilih gram</option>
-							<template x-for="g in grams" :key="g">
-								<option :value="g" x-text="formatGram(g)"></option>
+						<label for="antam-tipe">Tipe</label>
+						<select id="antam-tipe" x-model="tipe" @change="gram = ''">
+							<option value="">Pilih tipe</option>
+							<template x-for="t in types" :key="t">
+								<option :value="t" x-text="t"></option>
 							</template>
 						</select>
 					</div>
 
 					<div class="form-field">
-						<label for="antam-tahun">Tahun</label>
-						<select id="antam-tahun" x-model="tahun">
-							<option value="">Pilih tahun</option>
-							<template x-for="y in years" :key="y">
-								<option :value="y" x-text="y"></option>
+						<label for="antam-gram">Gram</label>
+						<select id="antam-gram" x-model="gram" :disabled="! tipe">
+							<option value="" x-text="tipe ? 'Pilih gram' : 'Pilih tipe dulu'"></option>
+							<template x-for="g in grams" :key="g">
+								<option :value="g" x-text="formatGram(g)"></option>
 							</template>
 						</select>
 					</div>
@@ -105,14 +115,19 @@ while ( have_posts() ) : the_post();
 				function verenaAntamDetail( config ) {
 					return {
 						rows: config.rows,
+						types: config.types,
 						waNumber: config.waNumber,
+						tipe: '',
 						gram: '',
-						tahun: '',
 						quantity: '',
-						years: [ '2026', '2025', '2021-2024' ],
 						quantities: [ '1', '2', '3', '4', '5+' ],
+						// Only grams that actually have a price under the chosen Tipe —
+						// user picks Tipe first, Gram options depend on that choice.
 						get grams() {
-							return this.rows.map( ( r ) => r.gram );
+							if ( ! this.tipe ) { return []; }
+							return this.rows
+								.filter( ( r ) => r[ this.tipe ] && null !== r[ this.tipe ].sell )
+								.map( ( r ) => r.gram );
 						},
 						formatGram( g ) {
 							return String( g ).replace( '.', ',' ) + ' gr';
@@ -121,16 +136,21 @@ while ( have_posts() ) : the_post();
 							return this.rows.find( ( r ) => Number( r.gram ) === Number( this.gram ) ) || null;
 						},
 						get price() {
-							if ( ! this.row || ! this.tahun || ! this.row[ this.tahun ] ) {
+							if ( ! this.tipe || ! this.row || ! this.row[ this.tipe ] ) {
 								return null;
 							}
-							return this.row[ this.tahun ].sell;
+							return this.row[ this.tipe ].sell;
 						},
 						get formattedPrice() {
-							return this.price ? 'Rp' + this.price.toLocaleString( 'id-ID' ) + '/pcs' : '—';
+							if ( null === this.price ) { return '—'; }
+							if ( '' === this.quantity ) { return 'Rp' + this.price.toLocaleString( 'id-ID' ) + '/pcs'; }
+							const qty   = ( '5+' === this.quantity ) ? 5 : parseInt( this.quantity );
+							const total = this.price * qty;
+							const suffix = ( '5+' === this.quantity ) ? '+' : '';
+							return 'Rp' + total.toLocaleString( 'id-ID' ) + suffix + ' (Rp' + this.price.toLocaleString( 'id-ID' ) + '/pcs)';
 						},
 						get canInquire() {
-							return this.gram !== '' && this.tahun !== '' && this.quantity !== '' && this.price !== null;
+							return this.tipe !== '' && this.gram !== '' && this.quantity !== '' && this.price !== null;
 						},
 						get waLink() {
 							if ( ! this.canInquire ) {
@@ -138,8 +158,8 @@ while ( have_posts() ) : the_post();
 							}
 							const lines = [
 								'Halo Verena Jewellery, saya ingin bertanya tentang Logam Mulia Antam.',
+								'Tipe: ' + this.tipe,
 								'Gram: ' + this.formatGram( this.gram ),
-								'Tahun: ' + this.tahun,
 								'Jumlah: ' + this.quantity,
 								'Harga: ' + this.formattedPrice,
 							];

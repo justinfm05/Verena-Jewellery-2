@@ -39,7 +39,7 @@ while ( have_posts() ) : the_post();
 	}
 	?>
 	<main class="container section">
-		<div class="text-center section-narrow" style="margin-bottom:var(--space-4);">
+		<div class="text-center section-narrow lm-intro" style="margin-bottom:var(--space-4);">
 			<p class="eyebrow">Emas Batangan</p>
 			<h1><?php the_title(); ?></h1>
 			<div class="text-muted"><?php the_content(); ?></div>
@@ -81,9 +81,14 @@ while ( have_posts() ) : the_post();
 
 		<div class="price-table-head mt-4">
 			<h3 style="margin:0;">Antam</h3>
-			<?php if ( isset( $brand_urls['Antam'] ) ) : ?>
-				<a href="<?php echo esc_url( $brand_urls['Antam'] ); ?>" class="btn btn-gold btn-sm">Beli LM Antam</a>
-			<?php endif; ?>
+			<div style="display:flex; gap:8px; flex-wrap:wrap;">
+				<?php if ( isset( $brand_urls['Antam'] ) ) : ?>
+					<a href="<?php echo esc_url( $brand_urls['Antam'] ); ?>" class="btn btn-gold btn-sm">Beli LM Antam</a>
+				<?php endif; ?>
+				<?php if ( isset( $brand_urls['Antam'] ) ) : ?>
+					<a href="<?php echo esc_url( $brand_urls['Antam'] ); ?>" class="btn btn-outline btn-sm">Beli LM Antam Tahun Lama</a>
+				<?php endif; ?>
+			</div>
 		</div>
 		<?php if ( empty( $sheet['antam'] ) ) : ?>
 			<p class="text-muted">Harga belum tersedia saat ini.</p>
@@ -95,20 +100,15 @@ while ( have_posts() ) : the_post();
 							<th>Gram</th>
 							<th>2026 Jual</th>
 							<th>2026 Buyback</th>
-							<th>2025 Jual</th>
-							<th>2025 Buyback</th>
-							<th>2021-2024 Jual</th>
-							<th>2021-2024 Buyback</th>
 						</tr>
 					</thead>
 					<tbody>
 						<?php foreach ( $sheet['antam'] as $row ) : ?>
+							<?php if ( null === $row['2026']['sell'] ) : continue; endif; ?>
 							<tr>
 								<td><?php echo esc_html( verena_format_grams( $row['gram'] ) ); ?></td>
-								<?php foreach ( array( '2026', '2025', '2021-2024' ) as $year ) : ?>
-									<td><?php echo null !== $row[ $year ]['sell'] ? esc_html( verena_format_idr( $row[ $year ]['sell'] ) ) : '—'; ?></td>
-									<td><?php echo null !== $row[ $year ]['buyback'] ? esc_html( verena_format_idr( $row[ $year ]['buyback'] ) ) : '—'; ?></td>
-								<?php endforeach; ?>
+								<td><?php echo esc_html( verena_format_idr( $row['2026']['sell'] ) ); ?></td>
+								<td><?php echo null !== $row['2026']['buyback'] ? esc_html( verena_format_idr( $row['2026']['buyback'] ) ) : '—'; ?></td>
 							</tr>
 						<?php endforeach; ?>
 					</tbody>
@@ -122,9 +122,11 @@ while ( have_posts() ) : the_post();
 		<?php foreach ( array( 'Emasku' => 'emasku', 'UBS' => 'ubs' ) as $label => $key ) : ?>
 			<div class="price-table-head mt-4">
 				<h3 style="margin:0;"><?php echo esc_html( $label ); ?></h3>
-				<?php if ( isset( $brand_urls[ $label ] ) ) : ?>
-					<a href="<?php echo esc_url( $brand_urls[ $label ] ); ?>" class="btn btn-gold btn-sm">Beli LM <?php echo esc_html( $label ); ?></a>
-				<?php endif; ?>
+				<div style="display:flex; gap:8px; flex-wrap:wrap;">
+					<?php if ( isset( $brand_urls[ $label ] ) ) : ?>
+						<a href="<?php echo esc_url( $brand_urls[ $label ] ); ?>" class="btn btn-gold btn-sm">Beli LM <?php echo esc_html( $label ); ?></a>
+					<?php endif; ?>
+				</div>
 			</div>
 			<?php if ( empty( $sheet[ $key ] ) ) : ?>
 				<p class="text-muted">Harga belum tersedia saat ini.</p>

@@ -32,7 +32,7 @@ while ( have_posts() ) :
 endwhile;
 ?>
 
-<section class="band" x-data="verenaCustomForm(<?php echo esc_attr( wp_json_encode( $wa_number ) ); ?>)">
+<section class="band custom-design-band" x-data="verenaCustomForm(<?php echo esc_attr( wp_json_encode( $wa_number ) ); ?>)">
 	<div class="band__inner" style="max-width:720px;">
 		<div class="band__head">
 			<span class="eyebrow">Custom Design</span>

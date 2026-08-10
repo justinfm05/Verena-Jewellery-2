@@ -53,57 +53,38 @@ if ( isset( $karats['14K'] ) && null !== $karats['14K'] ) {
 $default_purity = isset( $karats['17K'] ) ? '17K' : ( $karat_options[0]['label'] ?? '' ); // Most common gold in Indonesia (750/75%).
 
 // Logam Mulia (bars): same cached Google Sheet data (and same buyback
-// numbers) as the Antam/Emasku/UBS bullion checkout pages — never a
-// separate source. Antam carries three year tiers per gram row; Emasku/UBS
-// have one buyback figure per gram row.
+// numbers, straight from the sheet's "Harga Terima" section) as the
+// Antam/Emasku/UBS bullion checkout pages — never a separate source. Antam
+// carries 7 type tiers per gram row; Emasku has one buyback figure per gram
+// row (its own Baru/250+ tiering is already resolved sheet-side); UBS
+// carries two — 'buyback' (UBS Baru) and 'buyback_retro' (UBS Retro) — read
+// via buybackField below.
 $bullion_sheet = verena_get_bullion_sheet_data();
 $brand_options  = array(
-	array(
-		'label' => 'Antam 2026',
-		'key'   => 'antam',
-		'year'  => '2026',
-	),
-	array(
-		'label' => 'Antam 2025',
-		'key'   => 'antam',
-		'year'  => '2025',
-	),
-	array(
-		'label' => 'Antam 2021-2024',
-		'key'   => 'antam',
-		'year'  => '2021-2024',
-	),
-	array(
-		'label' => 'Emasku',
-		'key'   => 'emasku',
-		'year'  => null,
-	),
-	array(
-		'label' => 'UBS',
-		'key'   => 'ubs',
-		'year'  => null,
-	),
+	array( 'label' => 'Antam 2026', 'key' => 'antam', 'year' => '2026' ),
+	array( 'label' => 'Antam 2025', 'key' => 'antam', 'year' => '2025' ),
+	array( 'label' => 'Antam 2021-2024', 'key' => 'antam', 'year' => '2021-2024' ),
+	array( 'label' => 'Antam Non RM <2020', 'key' => 'antam', 'year' => 'Non RM <2020' ),
+	array( 'label' => 'Antam Press Hijau', 'key' => 'antam', 'year' => 'Antam Press Hijau' ),
+	array( 'label' => 'Antam Retro Tegak', 'key' => 'antam', 'year' => 'Antam Retro Tegak' ),
+	array( 'label' => 'Antam Retro Tidur', 'key' => 'antam', 'year' => 'Antam Retro Tidur' ),
+	array( 'label' => 'Emasku', 'key' => 'emasku', 'year' => null ),
+	array( 'label' => 'UBS Baru', 'key' => 'ubs', 'year' => null ),
+	array( 'label' => 'UBS Retro', 'key' => 'ubs', 'year' => null, 'buybackField' => 'buyback_retro' ),
 );
 
 // 1-gram buyback price per brand, for the summary table next to the
-// calculator — Antam broken out by year tier (2026/2025/2021-2024), same as
-// the calculator's own Merek dropdown, since buyback differs by year. Full
-// gram-by-gram, all-year pricing lives on the Logam Mulia page, linked below
-// that table.
+// calculator — Antam only shows the current mint year (2026) for now; older
+// year tiers aren't shown publicly. Full gram-by-gram pricing lives on the
+// Logam Mulia page, linked below that table.
 $bullion_1g_rows = array(
-	'antam'  => array(
-		'2026'      => null,
-		'2025'      => null,
-		'2021-2024' => null,
-	),
+	'antam'  => null,
 	'emasku' => null,
 	'ubs'    => null,
 );
 foreach ( $bullion_sheet['antam'] ?? array() as $row ) {
 	if ( 1 === (int) $row['gram'] ) {
-		foreach ( array( '2026', '2025', '2021-2024' ) as $year ) {
-			$bullion_1g_rows['antam'][ $year ] = $row[ $year ]['buyback'] ?? null;
-		}
+		$bullion_1g_rows['antam'] = $row['2026']['buyback'] ?? null;
 		break;
 	}
 }
@@ -116,9 +97,7 @@ foreach ( array( 'emasku', 'ubs' ) as $brand_key ) {
 	}
 }
 $bullion_1g_options = array(
-	array( 'label' => 'Antam 2026', 'price' => $bullion_1g_rows['antam']['2026'] ),
-	array( 'label' => 'Antam 2025', 'price' => $bullion_1g_rows['antam']['2025'] ),
-	array( 'label' => 'Antam 2021-2024', 'price' => $bullion_1g_rows['antam']['2021-2024'] ),
+	array( 'label' => 'Antam 2026', 'price' => $bullion_1g_rows['antam'] ),
 	array( 'label' => 'Emasku', 'price' => $bullion_1g_rows['emasku'] ),
 	array( 'label' => 'UBS', 'price' => $bullion_1g_rows['ubs'] ),
 );
@@ -170,7 +149,7 @@ ob_start();
 	<table class="price-table">
 		<thead>
 			<tr>
-				<th>Logam Mulia</th>
+				<th>Logam Mulia (1gr)</th>
 				<th>Harga Buyback</th>
 			</tr>
 		</thead>
@@ -186,7 +165,7 @@ ob_start();
 </div>
 <p class="text-muted" style="font-size:0.85rem; margin:0 0 10px; padding-top:10px;">Harga Buyback Logam Mulia berbeda untuk setiap gramasi:</p>
 <p style="margin:0 0 16px;">
-	<a href="<?php echo esc_url( verena_page_url( 'bullion' ) ); ?>" class="btn btn-gold btn-sm">Lihat Tabel Lengkap Logam Mulia</a>
+	<a href="<?php echo esc_url( verena_wa_url( 'Halo Verena Jewellery, saya ingin tahu harga buyback LM' ) ); ?>" target="_blank" rel="noopener" class="btn btn-gold btn-sm">Harga Lengkap Lewat WhatsApp</a>
 </p>
 <?php if ( $bullion_changed_at ) : ?>
 	<p class="text-muted" style="font-size:0.85rem;">Harga terakhir diperbarui: <?php echo esc_html( wp_date( 'j F Y, H:i', $bullion_changed_at, new DateTimeZone( 'Asia/Jakarta' ) ) . ' WIB' ); ?></p>
@@ -231,7 +210,7 @@ $config = array(
 while ( have_posts() ) : the_post();
 	?>
 	<main class="container section">
-		<div class="section-narrow text-center" style="margin-bottom:var(--space-3);">
+		<div class="section-narrow text-center jual-emas-intro" style="margin-bottom:var(--space-3);">
 			<p class="eyebrow">Jual Emas Anda</p>
 			<h1><?php the_title(); ?></h1>
 			<div class="stack"><?php the_content(); ?></div>
@@ -489,15 +468,24 @@ while ( have_posts() ) : the_post();
 							event.target.value = '';
 						},
 						formatGram( g ) { return String( g ).replace( '.', ',' ); },
-						// Rows for the item's selected brand+year (Emasku/UBS have no
-						// year dimension), filtered to ones with a real buyback figure —
-						// same rows shown on the Antam/Emasku/UBS bullion checkout pages.
+						// Which field on a row holds the buyback figure for a given
+						// Merek option: a year-tiered sub-object (Antam's 7 types), an
+						// alternate top-level field (UBS Retro's buyback_retro), or the
+						// plain 'buyback' field (Emasku, UBS Baru).
+						buybackFor( option, row ) {
+							if ( option.year ) { return row[ option.year ] ? row[ option.year ].buyback : null; }
+							if ( option.buybackField ) { return row[ option.buybackField ] ?? null; }
+							return row.buyback;
+						},
+						// Rows for the item's selected brand+type, filtered to ones with
+						// a real buyback figure — same rows shown on the Antam/Emasku/UBS
+						// bullion checkout pages.
 						lmRows( item ) {
 							const option = this.brandOptions.find( ( o ) => o.label === item.brand );
 							if ( ! option ) { return []; }
 							const rows = this.bullion[ option.key ] || [];
 							return rows.filter( ( r ) => {
-								const buyback = option.year ? ( r[ option.year ] ? r[ option.year ].buyback : null ) : r.buyback;
+								const buyback = this.buybackFor( option, r );
 								return null !== buyback && undefined !== buyback;
 							} );
 						},
@@ -508,7 +496,7 @@ while ( have_posts() ) : the_post();
 							if ( ! option || '' === item.gram || qty <= 0 ) { return 0; }
 							const row = this.lmRows( item ).find( ( r ) => Number( r.gram ) === Number( item.gram ) );
 							if ( ! row ) { return 0; }
-							const perUnit = option.year ? row[ option.year ].buyback : row.buyback;
+							const perUnit = this.buybackFor( option, row );
 							if ( null === perUnit || undefined === perUnit ) { return 0; }
 							return Math.round( perUnit * qty );
 						},

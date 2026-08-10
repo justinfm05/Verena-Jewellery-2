@@ -24,6 +24,10 @@ $emasku_rows = $sheet['emasku'];
 while ( have_posts() ) : the_post();
 	?>
 	<main class="container section">
+		<a href="<?php echo esc_url( verena_page_url( 'bullion' ) ); ?>" class="bullion-back-link">
+			<svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			<span>Kembali</span>
+		</a>
 		<div class="text-center section-narrow" style="margin-bottom:var(--space-4);">
 			<p class="eyebrow">Emas Batangan</p>
 			<h1><?php the_title(); ?></h1>
@@ -109,7 +113,12 @@ while ( have_posts() ) : the_post();
 							return this.row ? this.row.sell : null;
 						},
 						get formattedPrice() {
-							return this.price ? 'Rp' + this.price.toLocaleString( 'id-ID' ) + '/pcs' : '—';
+							if ( null === this.price ) { return '—'; }
+							if ( '' === this.quantity ) { return 'Rp' + this.price.toLocaleString( 'id-ID' ) + '/pcs'; }
+							const qty   = ( '5+' === this.quantity ) ? 5 : parseInt( this.quantity );
+							const total = this.price * qty;
+							const suffix = ( '5+' === this.quantity ) ? '+' : '';
+							return 'Rp' + total.toLocaleString( 'id-ID' ) + suffix + ' (Rp' + this.price.toLocaleString( 'id-ID' ) + '/pcs)';
 						},
 						get canInquire() {
 							return this.gram !== '' && this.quantity !== '' && this.price !== null;

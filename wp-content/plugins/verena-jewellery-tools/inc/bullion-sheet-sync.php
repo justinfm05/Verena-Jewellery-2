@@ -61,12 +61,28 @@ function verena_jt_bullion_buyback_amount( $buyback, $key, $gram ) {
 	}
 	$tier = ( $gram >= 50 ) ? 'large' : 'small';
 	$rate = $buyback[ $key ][ $tier ];
+	// Some types (e.g. UBS Retro, Antam Press Hijau/Retro Tidur) only have
+	// one of the two rate columns filled in on the sheet — that means a
+	// single flat rate for every gram size, not "no price below/above 50g".
+	// Fall back to whichever tier does have a rate before giving up.
+	if ( null === $rate ) {
+		$rate = $buyback[ $key ][ 'large' === $tier ? 'small' : 'large' ];
+	}
 	return null === $rate ? null : verena_round_idr( $gram * $rate );
 }
 
 /**
  * Parse the published CSV into display-ready rows for the three Logam Mulia
  * tables, with buyback already computed per denomination.
+ *
+ * Antam rows carry 7 types — 2026, 2025, 2021-2024, Non RM <2020, Antam
+ * Press Hijau, Antam Retro Tegak, Antam Retro Tidur — each as its own
+ * {sell, buyback} pair. UBS rows additionally carry `buyback_retro` (the
+ * "UBS RETRO + GAL24" rate — no sell price of its own, sheet has no
+ * separate column for it). Only Antam 2026/Emasku/UBS are ever shown on the
+ * public Logam Mulia table; the full type set (all 7 Antam types, UBS
+ * Baru/Retro) is used by the Antam checkout page's Tipe picker and the Jual
+ * Emas calculator's Logam Mulia Merek picker.
  *
  * @param string $csv_body Raw CSV response body.
  * @return array{antam: array, emasku: array, ubs: array}
@@ -121,6 +137,35 @@ function verena_jt_bullion_parse_csv( $csv_body ) {
 	}
 
 	if ( null !== $grid_header_index ) {
+		// Antam columns, fixed positions confirmed directly against the sheet
+		// (columns B-K: Berat, 2026, 2025, 2021-2024, Non RM <2020, Antam
+		// Press Hijau, Antam Retro Tegak, Antam Retro Tidur, Emasku, UBS).
+		// All 7 types have a matching "HARGA TERIMA" buyback rate.
+		$antam_col = array(
+			'2026'              => 2,
+			'2025'              => 3,
+			'2021-2024'         => 4,
+			'Non RM <2020'      => 5,
+			'Antam Press Hijau' => 6,
+			'Antam Retro Tegak' => 7,
+			'Antam Retro Tidur' => 8,
+		);
+		// Explicit map to each type's "HARGA TERIMA" description text, rather
+		// than building it as 'ANTM ' . $type_label — the last three types
+		// above already have "Antam" in their own label (needed standalone on
+		// the checkout page's Tipe picker), so naive concatenation produces
+		// "ANTM ANTAM RETRO TEGAK" instead of the sheet's actual "ANTM RETRO
+		// TEGAK", silently breaking their buyback lookup.
+		$antam_buyback_desc = array(
+			'2026'              => 'ANTM 2026',
+			'2025'              => 'ANTM 2025',
+			'2021-2024'         => 'ANTM 2021-2024',
+			'Non RM <2020'      => 'ANTM NON RM <2020',
+			'Antam Press Hijau' => 'ANTM PRESS HIJAU',
+			'Antam Retro Tegak' => 'ANTM RETRO TEGAK',
+			'Antam Retro Tidur' => 'ANTM RETRO TIDUR',
+		);
+
 		for ( $i = $grid_header_index + 2; $i < count( $rows ); $i++ ) {
 			$row  = $rows[ $i ];
 			$gram = isset( $row[1] ) ? trim( $row[1] ) : '';
@@ -129,20 +174,27 @@ function verena_jt_bullion_parse_csv( $csv_body ) {
 			}
 			$gram = (float) $gram;
 
-			$antam_sells = array(
-				'2026'      => verena_jt_bullion_parse_price( $row[2] ?? '' ),
-				'2025'      => verena_jt_bullion_parse_price( $row[3] ?? '' ),
-				'2021-2024' => verena_jt_bullion_parse_price( $row[4] ?? '' ),
-			);
-			if ( null !== $antam_sells['2026'] || null !== $antam_sells['2025'] || null !== $antam_sells['2021-2024'] ) {
-				$antam_row = array( 'gram' => $gram );
-				foreach ( $antam_sells as $year => $sell ) {
-					$antam_row[ $year ] = array(
-						'sell'    => $sell,
-						'buyback' => null === $sell ? null : verena_jt_bullion_buyback_amount( $buyback, 'ANTM ' . $year, $gram ),
-					);
+			$antam_sells  = array();
+			$antam_has_any = false;
+			foreach ( $antam_col as $type_label => $col_index ) {
+				$sell = verena_jt_bullion_parse_price( $row[ $col_index ] ?? '' );
+				if ( null !== $sell ) {
+					$antam_has_any = true;
 				}
-				$antam[] = $antam_row;
+				$antam_sells[ $type_label ] = array(
+					'sell'    => $sell,
+					'buyback' => ( null !== $sell )
+						? verena_jt_bullion_buyback_amount( $buyback, verena_jt_normalize_label( $antam_buyback_desc[ $type_label ] ), $gram )
+						: null,
+				);
+			}
+			if ( $antam_has_any ) {
+				// Union (+), not array_merge(): '2026'/'2025' are numeric-
+				// looking string keys, which PHP silently casts to real int
+				// keys — array_merge() would then renumber them (0, 1, ...)
+				// instead of preserving '2026'/'2025', silently breaking the
+				// Tipe lookup on the Antam checkout page.
+				$antam[] = array( 'gram' => $gram ) + $antam_sells;
 			}
 
 			$emasku_sell = verena_jt_bullion_parse_price( $row[9] ?? '' );
@@ -161,6 +213,10 @@ function verena_jt_bullion_parse_csv( $csv_body ) {
 					'gram'    => $gram,
 					'sell'    => $ubs_sell,
 					'buyback' => verena_jt_bullion_buyback_amount( $buyback, 'UBS BARU', $gram ),
+					// UBS Retro has no sell price of its own on this sheet (no
+					// separate column) — only used by the Jual Emas calculator's
+					// Merek picker, which only ever needs a buyback rate.
+					'buyback_retro' => verena_jt_bullion_buyback_amount( $buyback, 'UBS RETRO + GAL24', $gram ),
 				);
 			}
 		}

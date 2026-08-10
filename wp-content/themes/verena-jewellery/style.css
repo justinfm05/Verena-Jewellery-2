@@ -176,9 +176,9 @@ p { margin: 0 0 var(--space-2); }
 .gold-ticker__note { font-size: 12px; color: var(--olive-2); margin: 0; text-align: center; }
 .gold-ticker__link { color: var(--gold); text-decoration: underline; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
 .gold-ticker__link:hover { color: var(--gold-bright); }
-/* Phone only — less top padding on the ticker; desktop/tablet untouched. */
+/* Phone only — shorter ticker bar; desktop/tablet untouched. */
 @media (max-width: 600px) {
-	.gold-ticker__inner { padding-top: 4px; row-gap: 4px; }
+	.gold-ticker__inner { padding: 4px 16px; row-gap: 4px; }
 	.gold-ticker__rates { row-gap: 4px; }
 }
 
@@ -212,6 +212,14 @@ p { margin: 0 0 var(--space-2); }
 	max-width: 240px;
 	object-fit: contain;
 	display: block;
+}
+/* Phone only — shorter header bar; desktop/tablet untouched. */
+@media (max-width: 600px) {
+	.site-header__inner { padding: 8px 16px; }
+	.site-logo img,
+	.site-header .custom-logo {
+		height: 40px !important;
+	}
 }
 .site-logo__text { font-family: var(--font-display); font-style: italic; font-size: 1.6rem; color: var(--champagne); }
 
@@ -627,8 +635,22 @@ p { margin: 0 0 var(--space-2); }
 .repairs-form { margin-top: var(--space-4); }
 /* Phone only — less gap above the Servis form, more room below it before the footer; desktop/tablet untouched. */
 @media (max-width: 600px) {
-	.repairs-intro { margin-bottom: 20px; }
+	.repairs-intro { margin-bottom: 20px; margin-top: 24px; }
 	.repairs-form { margin-top: 20px; margin-bottom: 40px; }
+}
+/* Phone only — a little extra clearance below the header, same fix as the bullion checkout pages' back link. Desktop/tablet untouched. */
+@media (max-width: 600px) {
+	.lm-intro { margin-top: 24px; }
+	.jual-emas-intro { margin-top: 24px; }
+}
+/* Phone only — Custom Design's first section (.band) uses a fixed 88px top
+   padding sitewide (no phone override), which reads as too much empty
+   space right below the header on this page specifically (it's the very
+   first thing here, unlike other .band usages that follow other content).
+   Cut down to match the ~24px clearance the other intro pages now use.
+   Desktop/tablet, and every other .band on the site, untouched. */
+@media (max-width: 600px) {
+	.custom-design-band { padding-top: 24px; }
 }
 /* Phone only — more room below the About page's contact card, before the footer; desktop/tablet untouched. */
 @media (max-width: 600px) {
@@ -730,6 +752,10 @@ p { margin: 0 0 var(--space-2); }
 /* Tables (bullion pricing)                                            */
 /* ------------------------------------------------------------------ */
 .price-table-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+/* Phone only — always stack the Beli LM button(s) below the brand title, for all three brands consistently (Antam already wrapped this way just from having two buttons; Emasku/UBS only have one, so they'd otherwise stay beside the title). Desktop/tablet untouched. */
+@media (max-width: 600px) {
+	.price-table-head { flex-direction: column; align-items: flex-start; }
+}
 .table-scroll { overflow-x: auto; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--line-light); }
 .price-table { width: 100%; border-collapse: collapse; background: var(--cream); }
 .price-table th, .price-table td { padding: 1rem 1.15rem; text-align: left; }
@@ -789,6 +815,20 @@ p { margin: 0 0 var(--space-2); }
 }
 
 /* Bullion brand detail page (e.g. Antam) — photo + gram/tahun/harga picker. */
+/* Phone only — back link to the Logam Mulia overview, top-left of every bullion checkout page; hidden on desktop/tablet. */
+.bullion-back-link { display: none; }
+@media (max-width: 600px) {
+	.bullion-back-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 15px;
+		font-weight: 600;
+		color: var(--gold-ink);
+		margin: 10px 0 16px;
+	}
+}
+.bullion-back-link:hover { color: var(--gold-bright); }
 .bullion-detail { display: grid; grid-template-columns: 1fr; gap: var(--space-4); align-items: start; }
 @media (min-width: 720px) { .bullion-detail { grid-template-columns: 1fr 1fr; } }
 .bullion-detail__photo { width: 66.67%; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); display: block; }
