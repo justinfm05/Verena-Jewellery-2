@@ -124,8 +124,11 @@ add_filter( 'robots_txt', 'verena_robots_txt', 10, 2 );
  * the plugin — synced every 5 minutes). Any brand missing a 1g row — or the
  * whole thing if the plugin isn't active yet — falls back to the demo
  * numbers below, so the ticker never renders empty. The reporting date shown
- * is the sheet's last-synced time, in Jakarta time regardless of the site's
- * own configured WordPress timezone setting (matches page-logam-mulia.php).
+ * is the most recent of the three displayed brands' own `changed_at` (the
+ * last time that brand's price actually changed, not just the last sync
+ * attempt) — same source of truth as "Harga terakhir diperbarui" on
+ * page-logam-mulia.php, so the two never disagree. Converted to Jakarta time
+ * regardless of the site's own configured WordPress timezone setting.
  *
  * @return array{date:string, rates:array<int,array{label:string,price:string}>}
  */
@@ -140,15 +143,22 @@ function verena_gold_rates() {
 
 	$sheet = function_exists( 'verena_get_bullion_sheet_data' ) ? verena_get_bullion_sheet_data() : array();
 	$rates = array();
+	$latest_changed_at = null;
 
 	foreach ( $display as $label => $fallback ) {
 		$one_gram_sell = verena_bullion_one_gram_sell( $sheet, $label );
 		$price         = null !== $one_gram_sell ? number_format( (int) $one_gram_sell, 0, ',', '.' ) : $fallback;
 		$rates[]       = array( 'label' => $label, 'price' => $price );
+
+		$brand_key   = ( 'Antam 2026' === $label ) ? 'antam' : strtolower( $label );
+		$changed_at  = $sheet['changed_at'][ $brand_key ] ?? null;
+		if ( $changed_at && ( null === $latest_changed_at || $changed_at > $latest_changed_at ) ) {
+			$latest_changed_at = $changed_at;
+		}
 	}
 
-	$date_label = ! empty( $sheet['fetched_at'] )
-		? wp_date( 'j F Y', $sheet['fetched_at'], new DateTimeZone( 'Asia/Jakarta' ) )
+	$date_label = $latest_changed_at
+		? wp_date( 'j F Y', $latest_changed_at, new DateTimeZone( 'Asia/Jakarta' ) )
 		: wp_date( 'j F Y' );
 
 	return array(
