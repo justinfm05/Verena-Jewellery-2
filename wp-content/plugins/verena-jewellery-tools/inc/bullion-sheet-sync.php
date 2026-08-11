@@ -31,10 +31,12 @@ function verena_jt_normalize_label( $label ) {
 }
 
 /**
- * Parse one price cell. The sheet is locked to plain numbers with "." as
- * the only decimal marker and no thousands-grouping punctuation at all
- * (e.g. "1417500" -> 1417500.0, never "1.417.500" or "1,417,500" — comma
- * is not a supported separator here in any position). "-"/"."/"" -> null.
+ * Parse one price cell. Rupiah prices are always whole numbers, so "." here
+ * is always a thousands-grouping character, never a decimal point — locked
+ * format is "1.417.500" -> 1417500.0. Comma is not a supported separator in
+ * any position. (The Berat/gram column below is the opposite case — small
+ * values with no grouping needed, so "." there IS the decimal point.)
+ * "-"/"."/"" -> null.
  *
  * @param string $raw
  * @return float|null
@@ -44,7 +46,7 @@ function verena_jt_bullion_parse_price( $raw ) {
 	if ( '' === $raw || '-' === $raw || '.' === $raw ) {
 		return null;
 	}
-	$number = (float) str_replace( ' ', '', $raw );
+	$number = (float) str_replace( array( '.', ' ' ), '', $raw );
 	return $number > 0 ? $number : null;
 }
 
@@ -171,9 +173,11 @@ function verena_jt_bullion_parse_csv( $csv_body ) {
 
 		for ( $i = $grid_header_index + 2; $i < count( $rows ); $i++ ) {
 			$row  = $rows[ $i ];
-			// Berat/gram is locked to plain numbers, "." as the only decimal
-			// marker (e.g. "0.5" for half a gram, never "0,5") — same
-			// convention as verena_jt_bullion_parse_price().
+			// Berat/gram values are small and never grouped, so "." here is
+			// always a decimal point (e.g. "0.5" for half a gram, never
+			// "0,5") — the opposite convention from price cells, which
+			// treat "." as thousands-grouping instead (see
+			// verena_jt_bullion_parse_price()).
 			$gram = isset( $row[1] ) ? trim( $row[1] ) : '';
 			if ( '' === $gram || ! is_numeric( $gram ) ) {
 				break; // End of the grid.
