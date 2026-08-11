@@ -178,11 +178,19 @@ function verena_jt_bullion_parse_csv( $csv_body ) {
 			// "0,5") — the opposite convention from price cells, which
 			// treat "." as thousands-grouping instead (see
 			// verena_jt_bullion_parse_price()).
-			$gram = isset( $row[1] ) ? trim( $row[1] ) : '';
-			if ( '' === $gram || ! is_numeric( $gram ) ) {
+			$gram_raw = isset( $row[1] ) ? trim( $row[1] ) : '';
+			// A genuinely empty cell is the real "end of the table" signal.
+			// A cell with something in it that just isn't a valid number
+			// (a stray comma, a typo) should only cost THAT row, not every
+			// row after it — skip it and keep reading, rather than treating
+			// one bad cell as if the whole table had ended right there.
+			if ( '' === $gram_raw ) {
 				break; // End of the grid.
 			}
-			$gram = (float) $gram;
+			if ( ! is_numeric( $gram_raw ) ) {
+				continue; // Malformed row — skip it, table isn't over.
+			}
+			$gram = (float) $gram_raw;
 
 			$antam_sells  = array();
 			$antam_has_any = false;
