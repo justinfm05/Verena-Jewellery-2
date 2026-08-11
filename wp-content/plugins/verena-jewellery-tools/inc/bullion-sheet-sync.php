@@ -31,9 +31,10 @@ function verena_jt_normalize_label( $label ) {
 }
 
 /**
- * Parse one price cell in Indonesian number format — "." groups thousands,
- * "," is the decimal point (e.g. "1.417.500" -> 1417500.0, "0,5" -> 0.5) —
- * the opposite of US formatting. "-"/"."/"" -> null.
+ * Parse one price cell. The sheet is locked to plain numbers with "." as
+ * the only decimal marker and no thousands-grouping punctuation at all
+ * (e.g. "1417500" -> 1417500.0, never "1.417.500" or "1,417,500" — comma
+ * is not a supported separator here in any position). "-"/"."/"" -> null.
  *
  * @param string $raw
  * @return float|null
@@ -43,10 +44,7 @@ function verena_jt_bullion_parse_price( $raw ) {
 	if ( '' === $raw || '-' === $raw || '.' === $raw ) {
 		return null;
 	}
-	$normalized = str_replace( '.', '', $raw );
-	$normalized = str_replace( ',', '.', $normalized );
-	$normalized = str_replace( ' ', '', $normalized );
-	$number     = (float) $normalized;
+	$number = (float) str_replace( ' ', '', $raw );
 	return $number > 0 ? $number : null;
 }
 
@@ -173,11 +171,10 @@ function verena_jt_bullion_parse_csv( $csv_body ) {
 
 		for ( $i = $grid_header_index + 2; $i < count( $rows ); $i++ ) {
 			$row  = $rows[ $i ];
-			// Grams can be comma-decimal ("0,5" = half a gram, Indonesian
-			// format) — normalize before validating, or the half-gram row
-			// fails is_numeric() (no comma support) and prematurely ends
-			// the whole grid right at the first data row.
-			$gram = isset( $row[1] ) ? str_replace( ',', '.', trim( $row[1] ) ) : '';
+			// Berat/gram is locked to plain numbers, "." as the only decimal
+			// marker (e.g. "0.5" for half a gram, never "0,5") — same
+			// convention as verena_jt_bullion_parse_price().
+			$gram = isset( $row[1] ) ? trim( $row[1] ) : '';
 			if ( '' === $gram || ! is_numeric( $gram ) ) {
 				break; // End of the grid.
 			}
