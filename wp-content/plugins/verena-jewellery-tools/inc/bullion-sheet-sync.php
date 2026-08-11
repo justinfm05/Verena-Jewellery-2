@@ -173,17 +173,18 @@ function verena_jt_bullion_parse_csv( $csv_body ) {
 
 		for ( $i = $grid_header_index + 2; $i < count( $rows ); $i++ ) {
 			$row  = $rows[ $i ];
-			// Berat/gram values are small and never grouped, so "." here is
-			// always a decimal point (e.g. "0.5" for half a gram, never
-			// "0,5") — the opposite convention from price cells, which
-			// treat "." as thousands-grouping instead (see
-			// verena_jt_bullion_parse_price()).
-			$gram_raw = isset( $row[1] ) ? trim( $row[1] ) : '';
+			// Berat/gram values are small and never grouped, so a "," or "."
+			// here is always a decimal point, never thousands-grouping —
+			// accept either character rather than depending on the sheet
+			// using one specific one (Sheets' own locale settings can
+			// silently reinterpret a typed "." in ways that are outside the
+			// site's control, so the code adapts instead of the sheet).
+			$gram_raw = isset( $row[1] ) ? str_replace( ',', '.', trim( $row[1] ) ) : '';
 			// A genuinely empty cell is the real "end of the table" signal.
 			// A cell with something in it that just isn't a valid number
-			// (a stray comma, a typo) should only cost THAT row, not every
-			// row after it — skip it and keep reading, rather than treating
-			// one bad cell as if the whole table had ended right there.
+			// (a typo, stray text) should only cost THAT row, not every row
+			// after it — skip it and keep reading, rather than treating one
+			// bad cell as if the whole table had ended right there.
 			if ( '' === $gram_raw ) {
 				break; // End of the grid.
 			}
