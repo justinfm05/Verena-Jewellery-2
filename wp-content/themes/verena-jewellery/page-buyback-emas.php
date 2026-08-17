@@ -130,13 +130,12 @@ ob_start();
 		</tbody>
 	</table>
 </div>
-<p class="text-muted" style="font-size:0.85rem; margin:0 0 10px; padding-top:10px;">Harga Buyback Logam Mulia berbeda untuk setiap gramasi:</p>
+<?php if ( $bullion_changed_at ) : ?>
+	<p class="text-muted" style="font-size:0.85rem; margin:0 0 10px; padding-top:10px;">Harga terakhir diperbarui: <?php echo esc_html( wp_date( 'j F Y, H:i', $bullion_changed_at, new DateTimeZone( 'Asia/Jakarta' ) ) . ' WIB' ); ?></p>
+<?php endif; ?>
 <p style="margin:0 0 16px;">
 	<a href="<?php echo esc_url( verena_wa_url( 'Halo Verena Jewellery, saya ingin tahu harga buyback LM' ) ); ?>" target="_blank" rel="noopener" class="btn btn-gold btn-sm">Harga Lengkap Lewat WhatsApp</a>
 </p>
-<?php if ( $bullion_changed_at ) : ?>
-	<p class="text-muted" style="font-size:0.85rem;">Harga terakhir diperbarui: <?php echo esc_html( wp_date( 'j F Y, H:i', $bullion_changed_at, new DateTimeZone( 'Asia/Jakarta' ) ) . ' WIB' ); ?></p>
-<?php endif; ?>
 
 <?php if ( empty( $karat_options ) ) : ?>
 	<p class="text-muted" style="margin-top:var(--space-3);">Harga belum tersedia saat ini.</p>
@@ -313,7 +312,8 @@ while ( have_posts() ) : the_post();
 					</div>
 				</div>
 				<h3 class="text-center" style="margin:0 0 16px; font-style:italic; font-size:clamp(1.5rem, 2.6vw, 2.1rem); font-weight:500; color:var(--ink);">Kami Jemput Langsung dari Rumah Anda</h3>
-				<p class="text-center text-muted" style="margin:0 auto; max-width:520px; font-size:15px; font-style:normal;">Tim Verena Jewellery dapat menjemput emas Anda dengan aman, langsung dari rumah Anda — tanpa perlu repot datang ke toko.</p>
+				<p class="text-center text-muted" style="margin:0 auto; max-width:520px; font-size:15px; font-style:normal;">Aman dan transparan. Emas Anda dapat dijemput dari rumah dengan asuransi sampai 100jt rupiah.</p>
+				<p class="text-center text-muted" style="margin:8px auto 0; max-width:520px; font-size:12.5px; font-style:italic;">*hanya berlaku untuk pengiriman dari pulau jawa dan sekelilingnya</p>
 			</div>
 
 			<div class="calc-title-divider calc-title-divider--desktop">
