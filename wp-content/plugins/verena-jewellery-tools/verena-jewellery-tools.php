@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Verena Jewellery Tools
  * Description: Custom post types, pricing engine, WhatsApp checkout links, and the gold net-worth calculator for Verena Jewellery. Requires Advanced Custom Fields.
- * Version: 1.2.0
+ * Version: 1.3.0
  * Author: Verena Jewellery
  * Text Domain: verena-jewellery-tools
  *
@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // No direct access.
 }
 
-define( 'VERENA_JT_VERSION', '1.2.0' );
+define( 'VERENA_JT_VERSION', '1.3.0' );
 define( 'VERENA_JT_DIR', plugin_dir_path( __FILE__ ) );
 define( 'VERENA_JT_URL', plugin_dir_url( __FILE__ ) );
 
@@ -34,6 +34,7 @@ require_once VERENA_JT_DIR . 'inc/admin-leads-page.php';
 require_once VERENA_JT_DIR . 'inc/quick-edit-status.php';
 require_once VERENA_JT_DIR . 'inc/bullion-sheet-sync.php';
 require_once VERENA_JT_DIR . 'inc/buyback-karat-sheet-sync.php';
+require_once VERENA_JT_DIR . 'inc/valas-sheet-sync.php';
 
 /**
  * Activation: create custom tables, seed default purity options, flush rewrite rules.
@@ -48,6 +49,21 @@ function verena_jt_activate() {
 	flush_rewrite_rules();
 }
 register_activation_hook( __FILE__, 'verena_jt_activate' );
+
+/**
+ * Re-run dbDelta whenever the plugin's version bumps, even without a
+ * deactivate/reactivate cycle — activation hooks only fire once, but schema
+ * changes (like the bullion price-history table added in 1.3.0) need to
+ * reach sites where the plugin is already active. dbDelta only applies the
+ * diff, so this is a no-op once a site is already current.
+ */
+function verena_jt_maybe_upgrade_db() {
+	if ( get_option( 'verena_jt_db_version' ) !== VERENA_JT_VERSION ) {
+		verena_jt_create_tables();
+		update_option( 'verena_jt_db_version', VERENA_JT_VERSION );
+	}
+}
+add_action( 'init', 'verena_jt_maybe_upgrade_db' );
 
 /**
  * Deactivation: just flush rewrite rules. Never drop custom tables on

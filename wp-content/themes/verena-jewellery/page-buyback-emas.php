@@ -111,10 +111,37 @@ $bullion_changed_at = ! empty( $bullion_sheet['changed_at'] ) ? max( $bullion_sh
 // depends on the sheet data above, not the_post().
 ob_start();
 ?>
+<!-- Bullion 1-gram buyback summary; full gram-by-gram chart lives on the Logam Mulia page -->
+<div class="table-scroll mb-2">
+	<table class="price-table">
+		<thead>
+			<tr>
+				<th>Logam Mulia (1gr)</th>
+				<th>Harga Buyback</th>
+			</tr>
+		</thead>
+		<tbody>
+			<?php foreach ( $bullion_1g_options as $option ) : ?>
+				<tr>
+					<td><?php echo esc_html( $option['label'] ); ?></td>
+					<td><?php echo null !== $option['price'] ? esc_html( verena_format_idr( $option['price'] ) ) : '—'; ?></td>
+				</tr>
+			<?php endforeach; ?>
+		</tbody>
+	</table>
+</div>
+<p class="text-muted" style="font-size:0.85rem; margin:0 0 10px; padding-top:10px;">Harga Buyback Logam Mulia berbeda untuk setiap gramasi:</p>
+<p style="margin:0 0 16px;">
+	<a href="<?php echo esc_url( verena_wa_url( 'Halo Verena Jewellery, saya ingin tahu harga buyback LM' ) ); ?>" target="_blank" rel="noopener" class="btn btn-gold btn-sm">Harga Lengkap Lewat WhatsApp</a>
+</p>
+<?php if ( $bullion_changed_at ) : ?>
+	<p class="text-muted" style="font-size:0.85rem;">Harga terakhir diperbarui: <?php echo esc_html( wp_date( 'j F Y, H:i', $bullion_changed_at, new DateTimeZone( 'Asia/Jakarta' ) ) . ' WIB' ); ?></p>
+<?php endif; ?>
+
 <?php if ( empty( $karat_options ) ) : ?>
-	<p class="text-muted">Harga belum tersedia saat ini.</p>
+	<p class="text-muted" style="margin-top:var(--space-3);">Harga belum tersedia saat ini.</p>
 <?php else : ?>
-	<div class="table-scroll mb-2">
+	<div class="table-scroll" style="margin-top:var(--space-3); margin-bottom:8px;">
 		<table class="price-table">
 			<thead>
 				<tr>
@@ -142,33 +169,6 @@ ob_start();
 	<?php if ( $karat_changed_at ) : ?>
 		<p class="text-muted" style="font-size:0.85rem;">Harga terakhir diperbarui: <?php echo esc_html( wp_date( 'j F Y, H:i', $karat_changed_at, new DateTimeZone( 'Asia/Jakarta' ) ) . ' WIB' ); ?></p>
 	<?php endif; ?>
-<?php endif; ?>
-
-<!-- Bullion 1-gram buyback summary; full gram-by-gram chart lives on the Logam Mulia page -->
-<div class="table-scroll" style="margin-top:var(--space-3); margin-bottom:8px;">
-	<table class="price-table">
-		<thead>
-			<tr>
-				<th>Logam Mulia (1gr)</th>
-				<th>Harga Buyback</th>
-			</tr>
-		</thead>
-		<tbody>
-			<?php foreach ( $bullion_1g_options as $option ) : ?>
-				<tr>
-					<td><?php echo esc_html( $option['label'] ); ?></td>
-					<td><?php echo null !== $option['price'] ? esc_html( verena_format_idr( $option['price'] ) ) : '—'; ?></td>
-				</tr>
-			<?php endforeach; ?>
-		</tbody>
-	</table>
-</div>
-<p class="text-muted" style="font-size:0.85rem; margin:0 0 10px; padding-top:10px;">Harga Buyback Logam Mulia berbeda untuk setiap gramasi:</p>
-<p style="margin:0 0 16px;">
-	<a href="<?php echo esc_url( verena_wa_url( 'Halo Verena Jewellery, saya ingin tahu harga buyback LM' ) ); ?>" target="_blank" rel="noopener" class="btn btn-gold btn-sm">Harga Lengkap Lewat WhatsApp</a>
-</p>
-<?php if ( $bullion_changed_at ) : ?>
-	<p class="text-muted" style="font-size:0.85rem;">Harga terakhir diperbarui: <?php echo esc_html( wp_date( 'j F Y, H:i', $bullion_changed_at, new DateTimeZone( 'Asia/Jakarta' ) ) . ' WIB' ); ?></p>
 <?php endif; ?>
 <?php
 $lm_kadar_tables_html = ob_get_clean();

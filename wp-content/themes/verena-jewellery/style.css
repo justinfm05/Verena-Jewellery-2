@@ -147,6 +147,9 @@ p { margin: 0 0 var(--space-2); }
 /* Gold price ticker                                                   */
 /* ------------------------------------------------------------------ */
 .gold-ticker {
+	position: sticky;
+	top: var(--header-h, 84px);
+	z-index: 40;
 	width: 100%;
 	background: var(--forest-dark);
 	border-bottom: 1px solid rgba(201, 162, 75, 0.25);
@@ -583,6 +586,17 @@ p { margin: 0 0 var(--space-2); }
 .card__cat { font-family: var(--font-body); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-ink); }
 .card__title { font-family: var(--font-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--ink); margin: 0; }
 .card__meta { font-family: var(--font-body); font-size: 13px; color: var(--ink-muted); margin: 0; }
+.card__excerpt {
+	font-family: var(--font-body);
+	font-size: 13.5px;
+	line-height: 1.55;
+	color: var(--ink-muted);
+	margin: 0;
+	display: -webkit-box;
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
 .card__price { font-family: var(--font-display); font-weight: 600; color: var(--forest); font-size: 1.15rem; margin: 0; }
 .card__cta {
 	display: flex; align-items: center; gap: 8px; margin-top: 10px;
@@ -775,6 +789,22 @@ p { margin: 0 0 var(--space-2); }
 	.price-table td { font-size: 0.85rem; }
 }
 
+/* Combined 3-brand table on the Logam Mulia overview page — 7 columns needs
+   tighter padding than the single-brand tables, plus a divider between each
+   brand's Jual/Buyback pair so the grouping reads clearly at a glance.
+   Dividers use an explicit .price-table--group-start class rather than
+   nth-child: the header's Jual/Buyback sub-row has no Gram cell (it's
+   rowspanned from the row above), so its column numbering is shifted by one
+   versus the body rows — nth-child landed the header and body dividers on
+   different logical columns, which is what made the grid look asymmetrical. */
+.price-table--combined th, .price-table--combined td { padding: 0.75rem 0.85rem; text-align: center; white-space: nowrap; }
+.price-table--combined th:first-child, .price-table--combined td:first-child { text-align: left; }
+.price-table--combined .price-table--group-start { border-left: 1px solid var(--line-light); }
+.price-table--combined thead .price-table--group-start { border-left-color: rgba(242, 233, 204, 0.25); }
+@media (max-width: 600px) {
+	.price-table--combined th, .price-table--combined td { padding: 0.6rem 0.5rem; font-size: 0.78rem; }
+}
+
 /* Logam Mulia brand strip — three equal-width badges spanning the full container, so the middle one sits at page-center. */
 .brand-strip { display: grid; grid-template-columns: 1fr; gap: 16px; margin: var(--space-2) 0 var(--space-3); }
 @media (min-width: 720px) { .brand-strip { grid-template-columns: repeat(3, 1fr); gap: 24px; } }
@@ -813,6 +843,50 @@ p { margin: 0 0 var(--space-2); }
 	.brand-badge img { height: 56px; }
 	.brand-badge img[src*="ubs-logo"], .brand-badge img[src*="emasku-logo"] { height: 46px; }
 }
+
+/* ------------------------------------------------------------------ */
+/* Homepage "Logam Mulia Emas Referensi" cards                         */
+/* ------------------------------------------------------------------ */
+/* Section-level spacing is much tighter than the site's other homepage
+   bands (see .gold-ref-section below) — the card content is sized up to
+   compensate so it doesn't read as cramped inside that smaller shell. */
+.gold-ref-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+@media (min-width: 720px) { .gold-ref-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; } }
+.gold-ref-card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+	padding: 19px 14px;
+	background: #FFFFFF;
+	border: 1px solid var(--line-light);
+	border-radius: var(--radius-md, 8px);
+	box-shadow: var(--shadow-sm);
+	transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+.gold-ref-card:hover { box-shadow: var(--shadow-md); transform: translateY(-3px); border-color: var(--gold); }
+.gold-ref-card__logo { height: 31px; width: auto; max-width: 100%; object-fit: contain; margin-bottom: 10px; }
+.gold-ref-card__label { font-family: var(--font-body); font-weight: 700; font-size: 1.02rem; color: var(--ink); margin-bottom: 10px; }
+.gold-ref-card__price { font-family: var(--font-body); font-weight: 700; font-size: 1.26rem; color: var(--ink); margin: 0; }
+.gold-ref-card__unit { font-size: 12.5px; font-weight: 600; letter-spacing: 0.02em; color: var(--ink-muted); margin-top: 5px; }
+/* Phone only — smaller cards; desktop/tablet untouched. */
+@media (max-width: 600px) {
+	.gold-ref-grid { gap: 7px; }
+	.gold-ref-card { padding: 14px 10px; }
+	.gold-ref-card__logo { height: 24px; margin-bottom: 7px; }
+	.gold-ref-card__price { font-size: 1.08rem; }
+}
+
+/* Homepage referensi section shell — half the vertical padding/head spacing
+   of the site's other bands (.band's shared 88px / .band__head's shared
+   48px), since this section's own card content already carries plenty of
+   visual weight without that much surrounding whitespace. */
+/* This section and Custom Showcase right below it are both champagne — with
+   no divider they read as one unbroken field, which is what made the gap
+   between them look like it had "no end". A hairline in the brand's gold
+   accent (same tint the gold-ticker's own border uses) closes it off. */
+.gold-ref-section { padding: 44px 24px; border-bottom: 1px solid rgba(201, 162, 75, 0.35); }
+.gold-ref-section .band__head { margin-bottom: 24px; }
 
 /* Bullion brand detail page (e.g. Antam) — photo + gram/tahun/harga picker. */
 /* Phone only — back link to the Logam Mulia overview, top-left of every bullion checkout page; hidden on desktop/tablet. */
@@ -1159,3 +1233,23 @@ p { margin: 0 0 var(--space-2); }
 .mb-4 { margin-bottom: var(--space-4); }
 .mb-0 { margin-bottom: 0; }
 .empty-state { text-align: center; padding: var(--space-5) var(--space-2); color: var(--text-muted); }
+
+.price-history { margin-bottom: var(--space-4); }
+.price-history__canvas-wrap { position: relative; height: 320px; width: 100%; }
+@media (max-width: 600px) {
+	.price-history__canvas-wrap { height: 240px; }
+}
+
+.pagination { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin-top: var(--space-4); }
+.pagination .page-numbers {
+	display: flex; align-items: center; justify-content: center;
+	min-width: 38px; height: 38px; padding: 0 10px;
+	font-family: var(--font-body); font-size: 13px; font-weight: 600;
+	color: var(--ink); background: var(--champagne);
+	border: 1px solid var(--line-light); border-radius: var(--radius-md, 8px);
+	text-decoration: none;
+	transition: border-color 0.2s ease, color 0.2s ease;
+}
+.pagination .page-numbers:hover { border-color: var(--gold); color: var(--gold-ink); }
+.pagination .page-numbers.current { background: var(--gold); color: var(--forest); border-color: transparent; }
+.pagination .page-numbers.dots { border: none; background: none; }

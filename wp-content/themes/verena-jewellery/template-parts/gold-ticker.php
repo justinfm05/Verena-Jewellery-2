@@ -1,8 +1,10 @@
 <?php
 /**
- * Gold price reference ticker — thin bar above the header on every page.
- * Rates come from verena_gold_rates() (Antam 2026 / Emasku / UBS, 1 gram,
- * from the shared bullion Google Sheet).
+ * Gold price reference ticker — thin bar sticking directly below the nav on
+ * every page (see .gold-ticker in style.css + assets/js/main.js). Rates come
+ * from verena_gold_rates() (Antam 2026 / Emasku / UBS — each brand's
+ * 100-gram bar price divided by 100, not the 1-gram bar's own price, from
+ * the shared bullion Google Sheet).
  *
  * @package Verena_Jewellery
  */

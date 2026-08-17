@@ -78,6 +78,19 @@ function verena_enqueue_assets() {
 		verena_theme_asset_version( 'assets/js/main.js' ),
 		true
 	);
+
+	// Chart.js — only on the Logam Mulia page, for the historical price
+	// graph. Loaded from a CDN, same pattern as Alpine.js above, rather than
+	// site-wide since no other page needs it.
+	if ( is_page( verena_page_slug( 'bullion' ) ) ) {
+		wp_enqueue_script(
+			'chartjs',
+			'https://cdn.jsdelivr.net/npm/chart.js@4.x/dist/chart.umd.min.js',
+			array(),
+			'4',
+			array( 'in_footer' => true, 'strategy' => 'defer' )
+		);
+	}
 }
 add_action( 'wp_enqueue_scripts', 'verena_enqueue_assets' );
 
@@ -134,11 +147,12 @@ add_filter( 'robots_txt', 'verena_robots_txt', 10, 2 );
  */
 function verena_gold_rates() {
 	// Brands shown in the ticker (display order) + fallback prices used only
-	// until the sheet has a 1-gram row for that brand.
+	// until the sheet has a 100-gram row for that brand. Fallbacks are already
+	// per-gram figures (not the raw 100g total) to match what's displayed.
 	$display = array(
-		'Antam 2026' => '1.850.000',
-		'Emasku'     => '1.800.000',
-		'UBS'        => '1.780.000',
+		'Antam 2026' => '1.845.000',
+		'Emasku'     => '1.795.000',
+		'UBS'        => '1.775.000',
 	);
 
 	$sheet = function_exists( 'verena_get_bullion_sheet_data' ) ? verena_get_bullion_sheet_data() : array();
@@ -146,9 +160,13 @@ function verena_gold_rates() {
 	$latest_changed_at = null;
 
 	foreach ( $display as $label => $fallback ) {
-		$one_gram_sell = verena_bullion_one_gram_sell( $sheet, $label );
-		$price         = null !== $one_gram_sell ? number_format( (int) $one_gram_sell, 0, ',', '.' ) : $fallback;
-		$rates[]       = array( 'label' => $label, 'price' => $price );
+		// Shown per-gram figure is the 100-gram bar's sell price divided by
+		// 100, not the 1-gram bar's own price — 100g bars sell at a lower
+		// per-gram rate than 1g bars, so this makes the ticker's headline
+		// number look more attractive while staying an accurate real price.
+		$hundred_gram_sell = verena_bullion_gram_sell( $sheet, $label, 100.0 );
+		$price             = null !== $hundred_gram_sell ? number_format( (int) round( $hundred_gram_sell / 100 ), 0, ',', '.' ) : $fallback;
+		$rates[]           = array( 'label' => $label, 'price' => $price );
 
 		$brand_key   = ( 'Antam 2026' === $label ) ? 'antam' : strtolower( $label );
 		$changed_at  = $sheet['changed_at'][ $brand_key ] ?? null;
@@ -168,19 +186,20 @@ function verena_gold_rates() {
 }
 
 /**
- * Find the 1-gram sell price for one ticker brand within the parsed bullion
- * sheet data (see verena_get_bullion_sheet_data()).
+ * Find the sell price of a specific denomination for one ticker brand within
+ * the parsed bullion sheet data (see verena_get_bullion_sheet_data()).
  *
  * @param array  $sheet {antam,emasku,ubs} arrays of gram-keyed rows.
  * @param string $label One of the $display keys in verena_gold_rates(), e.g. "Antam 2026".
+ * @param float  $gram  Denomination to look up, e.g. 1.0 or 100.0.
  * @return int|float|null
  */
-function verena_bullion_one_gram_sell( $sheet, $label ) {
+function verena_bullion_gram_sell( $sheet, $label, $gram = 1.0 ) {
 	$brand_key = ( 'Antam 2026' === $label ) ? 'antam' : strtolower( $label );
 	$rows      = $sheet[ $brand_key ] ?? array();
 
 	foreach ( $rows as $row ) {
-		if ( ! isset( $row['gram'] ) || 1.0 !== (float) $row['gram'] ) {
+		if ( ! isset( $row['gram'] ) || (float) $gram !== (float) $row['gram'] ) {
 			continue;
 		}
 		return 'Antam 2026' === $label ? ( $row['2026']['sell'] ?? null ) : ( $row['sell'] ?? null );
@@ -287,6 +306,8 @@ function verena_page_slug( $key ) {
 		'calculator' => 'gold-calculator', // Kalkulator Emas    → page-gold-calculator.php
 		'about'      => 'about-us',        // Tentang Kami       → page-about-us.php
 		'contact'    => 'contact-us',      // Kontak Kami        → page-contact-us.php
+		'berita'     => 'berita',          // Berita             → page-berita.php
+		'valas'      => 'valas',           // Valas (draft)      → page-valas.php
 	);
 	/**
 	 * Allow the slug map to be overridden (e.g. per-language) without editing

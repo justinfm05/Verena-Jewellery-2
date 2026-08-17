@@ -13,4 +13,17 @@ document.addEventListener( 'DOMContentLoaded', function () {
 			menuToggle.setAttribute( 'aria-expanded', String( open ) );
 		} );
 	}
+
+	// Keep the gold price ticker's sticky offset (--header-h, used by
+	// .gold-ticker in style.css) in sync with the nav bar's actual rendered
+	// height, so the ticker sticks flush below the nav on every screen size
+	// instead of relying on one hardcoded pixel value.
+	const siteHeader = document.querySelector( '.site-header' );
+	if ( siteHeader && window.ResizeObserver ) {
+		const setHeaderHeight = function () {
+			document.documentElement.style.setProperty( '--header-h', siteHeader.offsetHeight + 'px' );
+		};
+		new ResizeObserver( setHeaderHeight ).observe( siteHeader );
+		setHeaderHeight();
+	}
 } );

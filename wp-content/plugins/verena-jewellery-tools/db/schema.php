@@ -24,6 +24,7 @@ function verena_jt_create_tables() {
 	$gold_rate_log = $wpdb->prefix . 'verena_gold_rate_log';
 	$buyback_rate_log = $wpdb->prefix . 'verena_buyback_rate_log';
 	$calc_lists = $wpdb->prefix . 'verena_calc_lists';
+	$bullion_price_history = $wpdb->prefix . 'verena_bullion_price_history';
 
 	// One row per change = a free audit trail. "Current" rate = latest row.
 	$sql = "CREATE TABLE {$gold_rate_log} (
@@ -57,6 +58,16 @@ function verena_jt_create_tables() {
 		PRIMARY KEY  (id),
 		UNIQUE KEY slug (slug),
 		KEY created_at (created_at)
+	) {$charset_collate};
+
+	CREATE TABLE {$bullion_price_history} (
+		id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+		brand VARCHAR(20) NOT NULL,
+		recorded_date DATE NOT NULL,
+		sell_price BIGINT UNSIGNED NOT NULL,
+		created_at DATETIME NOT NULL,
+		PRIMARY KEY  (id),
+		UNIQUE KEY brand_date (brand, recorded_date)
 	) {$charset_collate};";
 
 	dbDelta( $sql );

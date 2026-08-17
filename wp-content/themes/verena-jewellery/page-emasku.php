@@ -138,6 +138,43 @@ while ( have_posts() ) : the_post();
 					};
 				}
 			</script>
+
+			<div class="price-history" style="margin-top:var(--space-5);">
+				<div class="band__head" style="margin-bottom:24px;">
+					<span class="eyebrow">Daftar Harga</span>
+					<h2>Tabel Harga Emasku</h2>
+				</div>
+				<div class="table-scroll" style="margin-bottom:8px;">
+					<table class="price-table">
+						<thead>
+							<tr>
+								<th>Gram</th>
+								<th>Harga Jual</th>
+								<th>Harga Buyback</th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach ( $emasku_rows as $row ) : ?>
+								<tr>
+									<td><?php echo esc_html( verena_format_grams( $row['gram'] ) ); ?></td>
+									<td><?php echo null !== $row['sell'] ? esc_html( verena_format_idr( $row['sell'] ) ) : '—'; ?></td>
+									<td><?php echo null !== $row['buyback'] ? esc_html( verena_format_idr( $row['buyback'] ) ) : '—'; ?></td>
+								</tr>
+							<?php endforeach; ?>
+						</tbody>
+					</table>
+				</div>
+				<?php
+				$emasku_changed_at = $sheet['changed_at']['emasku'] ?? null;
+				if ( $emasku_changed_at ) :
+					?>
+					<p class="text-muted" style="font-size:0.85rem;">Harga terakhir diperbarui: <?php echo esc_html( wp_date( 'j F Y, H:i', $emasku_changed_at, new DateTimeZone( 'Asia/Jakarta' ) ) . ' WIB' ); ?></p>
+				<?php endif; ?>
+			</div>
+
+			<div class="text-center" style="margin-top:24px;">
+				<a href="<?php echo esc_url( verena_page_url( 'bullion' ) ); ?>" class="btn btn-outline">&larr; Kembali ke Logam Mulia</a>
+			</div>
 		<?php endif; ?>
 	</main>
 	<?php

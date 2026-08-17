@@ -28,6 +28,26 @@ $hero_slides = verena_get_hero_slides();
    Verena Jewellery > Custom Showcase in wp-admin (Media Library picker),
    falls back to the theme's bundled placeholder file per slot. */
 $showcase_items = verena_get_showcase_media();
+
+/* Logam Mulia Emas Referensi cards — same per-gram figures as the sticky
+   gold-ticker (verena_gold_rates(), 100-gram bar price divided by 100), just
+   presented as a bigger, browsable homepage section instead of a thin bar. */
+$gold_rates       = verena_gold_rates();
+$gold_ref_bullion_slug = verena_page_slug( 'bullion' );
+$gold_ref_brands  = array(
+	'Antam 2026' => array( 'logo' => 'antam-logo.png', 'slug' => 'antam' ),
+	'Emasku'     => array( 'logo' => 'emasku-logo.png', 'slug' => 'emasku' ),
+	'UBS'        => array( 'logo' => 'ubs-logo.png', 'slug' => 'ubs' ),
+);
+foreach ( $gold_rates['rates'] as &$gold_ref_rate ) {
+	$brand_meta               = $gold_ref_brands[ $gold_ref_rate['label'] ] ?? null;
+	$gold_ref_rate['logo']    = $brand_meta['logo'] ?? '';
+	$brand_page                = $brand_meta ? get_page_by_path( $gold_ref_bullion_slug . '/' . $brand_meta['slug'] ) : null;
+	$gold_ref_rate['url']      = $brand_page
+		? get_permalink( $brand_page )
+		: verena_page_url( 'bullion', ( $brand_meta['slug'] ?? '' ) . '/' );
+}
+unset( $gold_ref_rate );
 ?>
 
 <!-- Hero -->
@@ -240,6 +260,36 @@ $showcase_items = verena_get_showcase_media();
 			<a class="btn btn-gold" style="margin-top:24px;" href="<?php echo esc_url( verena_page_url( 'bullion' ) ); ?>">
 				Beli Logam Mulia Sekarang
 			</a>
+		</div>
+	</div>
+</section>
+
+<!-- Logam Mulia Emas Referensi -->
+<section class="band band--champagne gold-ref-section">
+	<div class="band__inner" style="max-width:620px;">
+		<div class="band__head">
+			<span class="eyebrow">Update Harga &middot; <?php echo esc_html( $gold_rates['date'] ); ?></span>
+			<h2>Harga Logam Mulia</h2>
+			<p>Harga jual per gram hari ini, dihitung dari batangan 100 gram.</p>
+		</div>
+
+		<div class="gold-ref-grid">
+			<?php foreach ( $gold_rates['rates'] as $rate ) : ?>
+				<a class="gold-ref-card" href="<?php echo esc_url( $rate['url'] ); ?>">
+					<?php if ( $rate['logo'] ) : ?>
+						<img class="gold-ref-card__logo" src="<?php echo esc_url( verena_asset_url( 'assets/img/' . $rate['logo'] ) ); ?>" alt="<?php echo esc_attr( $rate['label'] ); ?>" />
+					<?php else : ?>
+						<span class="gold-ref-card__label"><?php echo esc_html( $rate['label'] ); ?></span>
+					<?php endif; ?>
+					<p class="gold-ref-card__price">Rp <?php echo esc_html( $rate['price'] ); ?></p>
+					<span class="gold-ref-card__unit">/gram &middot; batangan 100gr</span>
+				</a>
+			<?php endforeach; ?>
+		</div>
+
+		<p class="text-muted text-center" style="margin-top:14px; font-size:12.5px; font-style:italic;">harga final mengikuti kurs saat transaksi</p>
+		<div class="text-center" style="margin-top:14px;">
+			<a class="btn btn-gold" href="<?php echo esc_url( verena_page_url( 'bullion' ) ); ?>">Lihat Semua Harga Logam Mulia</a>
 		</div>
 	</div>
 </section>

@@ -1,6 +1,9 @@
 <?php
 /**
- * Site header: gold price ticker + sticky navigation.
+ * Site header: sticky navigation + gold price ticker (stuck directly below
+ * the nav — see .gold-ticker's `position: sticky` rule in style.css, offset
+ * by the --header-h custom property that assets/js/main.js keeps in sync
+ * with the nav bar's actual rendered height).
  *
  * @package Verena_Jewellery
  */
@@ -27,8 +30,6 @@ $wa_nav   = verena_wa_url( 'Halo Verena Jewellery, saya ingin bertanya tentang p
 </head>
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
-
-<?php get_template_part( 'template-parts/gold-ticker' ); ?>
 
 <header class="site-header" data-nav>
 	<div class="site-header__inner">
@@ -62,6 +63,9 @@ $wa_nav   = verena_wa_url( 'Halo Verena Jewellery, saya ingin bertanya tentang p
 			<?php endif; ?>
 			<?php if ( verena_page_is_published( 'about' ) ) : ?>
 				<a class="navlink" href="<?php echo esc_url( verena_page_url( 'about' ) ); ?>">Tentang Kami</a>
+			<?php endif; ?>
+			<?php if ( verena_page_is_published( 'berita' ) ) : ?>
+				<a class="navlink" href="<?php echo esc_url( verena_page_url( 'berita' ) ); ?>">Berita</a>
 			<?php endif; ?>
 		</nav>
 
@@ -99,8 +103,13 @@ $wa_nav   = verena_wa_url( 'Halo Verena Jewellery, saya ingin bertanya tentang p
 		<?php if ( verena_page_is_published( 'about' ) ) : ?>
 			<a href="<?php echo esc_url( verena_page_url( 'about' ) ); ?>">Tentang Kami</a>
 		<?php endif; ?>
+		<?php if ( verena_page_is_published( 'berita' ) ) : ?>
+			<a href="<?php echo esc_url( verena_page_url( 'berita' ) ); ?>">Berita</a>
+		<?php endif; ?>
 		<?php if ( verena_page_is_published( 'contact' ) ) : ?>
 			<a href="<?php echo esc_url( verena_page_url( 'contact' ) ); ?>">Kontak</a>
 		<?php endif; ?>
 	</nav>
 </header>
+
+<?php get_template_part( 'template-parts/gold-ticker' ); ?>

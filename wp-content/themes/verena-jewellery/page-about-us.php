@@ -50,6 +50,49 @@ while ( have_posts() ) : the_post();
 			</div>
 		</div>
 	</main>
+
+	<?php if ( shortcode_exists( 'reviews-feed' ) ) : ?>
+		<!-- Google Reviews feed -->
+		<section class="band band--forest">
+			<div class="band__inner" style="max-width:1160px;">
+				<div class="band__head" style="margin-bottom:32px;">
+					<span class="eyebrow">Dipercaya Sejak <?php echo esc_html( $shop['established'] ); ?></span>
+					<h2>Kata Pelanggan Kami</h2>
+				</div>
+				<?php echo do_shortcode( '[reviews-feed feed=1]' ); ?>
+			</div>
+		</section>
+	<?php endif; ?>
+
+	<?php if ( shortcode_exists( 'instagram-feed' ) || shortcode_exists( 'tiktok-feed' ) ) : ?>
+		<!-- Instagram / TikTok feeds -->
+		<section class="band band--champagne">
+			<div class="band__inner">
+				<?php if ( shortcode_exists( 'instagram-feed' ) ) : ?>
+					<div class="ig-head">
+						<div>
+							<span class="eyebrow">Ikuti Kami</span>
+							<h2>@verenajewellery.id</h2>
+						</div>
+						<?php if ( $shop['instagram'] ) : ?>
+							<a class="ig-more" href="<?php echo esc_url( $shop['instagram'] ); ?>" target="_blank" rel="noopener">Lihat di Instagram &rarr;</a>
+						<?php endif; ?>
+					</div>
+					<?php echo do_shortcode( '[instagram-feed feed=1]' ); ?>
+				<?php endif; ?>
+
+				<?php if ( shortcode_exists( 'tiktok-feed' ) ) : ?>
+					<div class="ig-head" style="margin-top:<?php echo shortcode_exists( 'instagram-feed' ) ? '40px' : '0'; ?>;">
+						<div>
+							<span class="eyebrow">Video Kami</span>
+							<h2>TikTok</h2>
+						</div>
+					</div>
+					<?php echo do_shortcode( '[tiktok-feed]' ); ?>
+				<?php endif; ?>
+			</div>
+		</section>
+	<?php endif; ?>
 	<?php
 endwhile;
 get_footer();

@@ -168,6 +168,44 @@ while ( have_posts() ) : the_post();
 					};
 				}
 			</script>
+
+			<div class="price-history" style="margin-top:var(--space-5);">
+				<div class="band__head" style="margin-bottom:24px;">
+					<span class="eyebrow">Daftar Harga</span>
+					<h2>Tabel Harga Antam 2026</h2>
+				</div>
+				<div class="table-scroll" style="margin-bottom:8px;">
+					<table class="price-table">
+						<thead>
+							<tr>
+								<th>Gram</th>
+								<th>2026 Jual</th>
+								<th>2026 Buyback</th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach ( $antam_rows as $row ) : ?>
+								<?php if ( null === $row['2026']['sell'] ) : continue; endif; ?>
+								<tr>
+									<td><?php echo esc_html( verena_format_grams( $row['gram'] ) ); ?></td>
+									<td><?php echo esc_html( verena_format_idr( $row['2026']['sell'] ) ); ?></td>
+									<td><?php echo null !== $row['2026']['buyback'] ? esc_html( verena_format_idr( $row['2026']['buyback'] ) ) : '—'; ?></td>
+								</tr>
+							<?php endforeach; ?>
+						</tbody>
+					</table>
+				</div>
+				<?php
+				$antam_changed_at = $sheet['changed_at']['antam'] ?? null;
+				if ( $antam_changed_at ) :
+					?>
+					<p class="text-muted" style="font-size:0.85rem;">Harga terakhir diperbarui: <?php echo esc_html( wp_date( 'j F Y, H:i', $antam_changed_at, new DateTimeZone( 'Asia/Jakarta' ) ) . ' WIB' ); ?></p>
+				<?php endif; ?>
+			</div>
+
+			<div class="text-center" style="margin-top:24px;">
+				<a href="<?php echo esc_url( verena_page_url( 'bullion' ) ); ?>" class="btn btn-outline">&larr; Kembali ke Logam Mulia</a>
+			</div>
 		<?php endif; ?>
 	</main>
 	<?php

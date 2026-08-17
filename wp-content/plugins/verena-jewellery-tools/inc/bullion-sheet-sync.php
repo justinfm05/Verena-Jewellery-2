@@ -288,9 +288,112 @@ function verena_jt_sync_bullion_sheet() {
 	$data['fetched_at'] = $now;
 
 	update_option( 'verena_bullion_sheet_cache', $data, false );
+	verena_jt_record_bullion_price_history( $data );
 	return true;
 }
 add_action( 'verena_jt_sync_bullion_sheet_event', 'verena_jt_sync_bullion_sheet' );
+
+/**
+ * The 1-gram sell price for one brand's parsed rows — same denomination the
+ * price-history graph tracks over time, and the same lookup logic
+ * verena_bullion_gram_sell() uses in the theme (kept separate since this
+ * runs inside the plugin, before the theme's functions.php is guaranteed to
+ * be loaded).
+ *
+ * @param array       $rows Gram-keyed rows for one brand.
+ * @param string|null $type For Antam, which year/type sub-key to read (e.g. "2026"); null for Emasku/UBS.
+ * @return int|float|null
+ */
+function verena_jt_bullion_history_one_gram_sell( $rows, $type = null ) {
+	foreach ( $rows as $row ) {
+		if ( ! isset( $row['gram'] ) || 1.0 !== (float) $row['gram'] ) {
+			continue;
+		}
+		return $type ? ( $row[ $type ]['sell'] ?? null ) : ( $row['sell'] ?? null );
+	}
+	return null;
+}
+
+/**
+ * Append today's 1-gram sell price for the three headline brands (Antam
+ * 2026, Emasku, UBS) to the price-history table, powering the Logam Mulia
+ * page's historical price graph. One row per brand per day — re-syncing
+ * later the same day updates that day's row (via the brand+date unique key)
+ * instead of inserting a new one, so the graph shows one point per day
+ * regardless of how often the 5-minute sync runs.
+ *
+ * "Today" is always computed in Jakarta time, matching every other
+ * date/timestamp this plugin shows, regardless of the site's own configured
+ * WordPress timezone setting.
+ *
+ * @param array $data Parsed sheet data as returned by verena_jt_bullion_parse_csv().
+ */
+function verena_jt_record_bullion_price_history( $data ) {
+	global $wpdb;
+	$table = $wpdb->prefix . 'verena_bullion_price_history';
+	$today = wp_date( 'Y-m-d', time(), new DateTimeZone( 'Asia/Jakarta' ) );
+
+	$prices = array(
+		'antam_2026' => verena_jt_bullion_history_one_gram_sell( $data['antam'] ?? array(), '2026' ),
+		'emasku'     => verena_jt_bullion_history_one_gram_sell( $data['emasku'] ?? array() ),
+		'ubs'        => verena_jt_bullion_history_one_gram_sell( $data['ubs'] ?? array() ),
+	);
+
+	foreach ( $prices as $brand => $price ) {
+		if ( null === $price ) {
+			continue;
+		}
+		$wpdb->query(
+			$wpdb->prepare(
+				"INSERT INTO {$table} (brand, recorded_date, sell_price, created_at) VALUES (%s, %s, %d, %s)
+				ON DUPLICATE KEY UPDATE sell_price = VALUES(sell_price)",
+				$brand,
+				$today,
+				(int) $price,
+				current_time( 'mysql', true )
+			)
+		);
+	}
+}
+
+/**
+ * Daily 1-gram sell price history for the three headline brands, oldest
+ * first, for the Logam Mulia page's price graph.
+ *
+ * @param int $days How many days back to include.
+ * @return array{antam_2026: array<int,array{date:string,price:int}>, emasku: array<int,array{date:string,price:int}>, ubs: array<int,array{date:string,price:int}>}
+ */
+function verena_get_bullion_price_history( $days = 90 ) {
+	global $wpdb;
+	$table = $wpdb->prefix . 'verena_bullion_price_history';
+	$since = wp_date( 'Y-m-d', strtotime( '-' . (int) $days . ' days' ), new DateTimeZone( 'Asia/Jakarta' ) );
+
+	$history = array(
+		'antam_2026' => array(),
+		'emasku'     => array(),
+		'ubs'        => array(),
+	);
+
+	$rows = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT brand, recorded_date, sell_price FROM {$table} WHERE recorded_date >= %s ORDER BY recorded_date ASC",
+			$since
+		),
+		ARRAY_A
+	);
+
+	foreach ( (array) $rows as $row ) {
+		if ( ! isset( $history[ $row['brand'] ] ) ) {
+			continue;
+		}
+		$history[ $row['brand'] ][] = array(
+			'date'  => $row['recorded_date'],
+			'price' => (int) $row['sell_price'],
+		);
+	}
+
+	return $history;
+}
 
 /**
  * Public accessor for the theme: the three tables' display-ready rows, a
